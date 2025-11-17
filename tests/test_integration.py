@@ -1,6 +1,7 @@
 """Integration tests for the CesiumWidget package."""
 
 import pytest
+import pathlib
 
 
 class TestPackageStructure:
@@ -57,16 +58,17 @@ class TestFileIntegrity:
         
         # Check for basic JavaScript syntax elements
         assert "function render" in js_content or "const render" in js_content
-        assert "export default" in js_content
+        # Bundled code uses 'export {' format instead of 'export default'
+        assert ("export default" in js_content or "export {" in js_content)
         assert "{" in js_content and "}" in js_content
     
-    def test_javascript_imports_cesium(self, widget_instance):
-        """Test JavaScript imports CesiumJS."""
-        js_content = widget_instance._esm
-        
-        assert 'import' in js_content
+    def test_javascript_imports_cesium(self):
+        """Test that JavaScript loads Cesium."""
+        js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
+        js_content = js_path.read_text()
+        # Check that Cesium is loaded (dynamically via loadCesiumJS)
         assert 'Cesium' in js_content
-        assert 'esm.sh/cesium' in js_content or 'cesium' in js_content.lower()
+        assert 'loadCesiumJS' in js_content or 'window.Cesium' in js_content
     
     def test_javascript_has_error_handling(self, widget_instance):
         """Test JavaScript has error handling."""

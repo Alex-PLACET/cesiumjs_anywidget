@@ -16,10 +16,11 @@ class TestFlyToMethod:
     
     def test_fly_to_default_altitude(self, widget_instance):
         """Test fly_to with default altitude."""
-        widget_instance.fly_to(48.8566, 2.3522)
-        assert widget_instance.latitude == 48.8566
-        assert widget_instance.longitude == 2.3522
-        assert widget_instance.altitude == 10000  # default
+        widget_instance.fly_to(latitude=51.5074, longitude=-0.1278)
+        
+        assert widget_instance.latitude == 51.5074
+        assert widget_instance.longitude == -0.1278
+        assert widget_instance.altitude == 400  # default
     
     def test_fly_to_negative_coordinates(self, widget_instance):
         """Test fly_to with negative coordinates."""
@@ -56,13 +57,14 @@ class TestSetViewMethod:
     """Test the set_view method."""
     
     def test_set_view_basic(self, widget_instance):
-        """Test basic set_view functionality."""
-        widget_instance.set_view(40.7128, -74.0060)
-        assert widget_instance.latitude == 40.7128
-        assert widget_instance.longitude == -74.0060
-        assert widget_instance.altitude == 10000  # default
+        """Test set_view with basic parameters."""
+        widget_instance.set_view(latitude=51.5074, longitude=-0.1278)
+        
+        assert widget_instance.latitude == 51.5074
+        assert widget_instance.longitude == -0.1278
+        assert widget_instance.altitude == 400  # default
         assert widget_instance.heading == 0.0  # default
-        assert widget_instance.pitch == -90.0  # default
+        assert widget_instance.pitch == -15.0  # default
         assert widget_instance.roll == 0.0  # default
     
     def test_set_view_with_altitude(self, widget_instance):

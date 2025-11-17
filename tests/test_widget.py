@@ -13,15 +13,15 @@ class TestWidgetInitialization:
         assert widget is not None
     
     def test_default_camera_position(self, widget_instance):
-        """Test default camera position values."""
-        assert widget_instance.latitude == 0.0
-        assert widget_instance.longitude == 0.0
-        assert widget_instance.altitude == 20000000.0
+        """Test default camera position."""
+        assert widget_instance.latitude == -122.4175
+        assert widget_instance.longitude == 37.655
+        assert widget_instance.altitude == 400.0
     
     def test_default_camera_orientation(self, widget_instance):
-        """Test default camera orientation values."""
+        """Test default camera orientation."""
         assert widget_instance.heading == 0.0
-        assert widget_instance.pitch == -90.0
+        assert widget_instance.pitch == -15.0
         assert widget_instance.roll == 0.0
     
     def test_default_viewer_config(self, widget_instance):

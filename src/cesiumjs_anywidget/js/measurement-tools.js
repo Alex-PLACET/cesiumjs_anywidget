@@ -1,174 +1,20 @@
-// Generated bundle - DO NOT EDIT DIRECTLY. Edit files in src/cesiumjs_anywidget/js/ instead.
+/**
+ * Measurement Tools Module
+ * 
+ * Handles all measurement functionality including distance, multi-distance,
+ * height, and area measurements.
+ */
 
-
-// src/cesiumjs_anywidget/js/viewer-init.js
-async function loadCesiumJS() {
-  if (window.Cesium) {
-    return window.Cesium;
-  }
-  const script = document.createElement("script");
-  script.src = "https://cesium.com/downloads/cesiumjs/releases/1.135/Build/Cesium/Cesium.js";
-  await new Promise((resolve, reject) => {
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-  return window.Cesium;
-}
-function createLoadingIndicator(container, hasToken) {
-  const loadingDiv = document.createElement("div");
-  loadingDiv.textContent = "Loading CesiumJS...";
-  loadingDiv.style.cssText = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #fff; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 5px;";
-  if (!hasToken) {
-    loadingDiv.innerHTML = `
-      <div style="text-align: center;">
-        <div>Loading CesiumJS...</div>
-        <div style="font-size: 12px; margin-top: 10px; color: #ffa500;">
-          \u26A0\uFE0F No Cesium Ion token set<br>
-          Some features may not work
-        </div>
-      </div>
-    `;
-  }
-  container.appendChild(loadingDiv);
-  return loadingDiv;
-}
-function createViewer(container, model, Cesium) {
-  const viewerOptions = {
-    timeline: model.get("show_timeline"),
-    animation: model.get("show_animation"),
-    baseLayerPicker: true,
-    geocoder: true,
-    homeButton: true,
-    sceneModePicker: true,
-    navigationHelpButton: true,
-    fullscreenButton: true,
-    scene3DOnly: false,
-    shadows: false,
-    shouldAnimate: false
-  };
-  if (model.get("enable_terrain")) {
-    viewerOptions.terrain = Cesium.Terrain.fromWorldTerrain();
-  }
-  const viewer = new Cesium.Viewer(container, viewerOptions);
-  viewer.scene.globe.enableLighting = model.get("enable_lighting");
-  return viewer;
-}
-function setupViewerListeners(viewer, model, container, Cesium) {
-  model.on("change:enable_terrain", () => {
-    if (!viewer)
-      return;
-    if (model.get("enable_terrain")) {
-      viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
-    } else {
-      viewer.scene.setTerrain(void 0);
-    }
-  });
-  model.on("change:enable_lighting", () => {
-    if (!viewer)
-      return;
-    viewer.scene.globe.enableLighting = model.get("enable_lighting");
-  });
-  model.on("change:height", () => {
-    if (!viewer)
-      return;
-    container.style.height = model.get("height");
-    viewer.resize();
-  });
-}
-function setupGeoJSONLoader(viewer, model, Cesium) {
-  let geojsonDataSource = null;
-  model.on("change:geojson_data", async () => {
-    if (!viewer)
-      return;
-    const geojsonData = model.get("geojson_data");
-    if (geojsonDataSource) {
-      viewer.dataSources.remove(geojsonDataSource);
-      geojsonDataSource = null;
-    }
-    if (geojsonData) {
-      try {
-        geojsonDataSource = await Cesium.GeoJsonDataSource.load(geojsonData, {
-          stroke: Cesium.Color.HOTPINK,
-          fill: Cesium.Color.PINK.withAlpha(0.5),
-          strokeWidth: 3
-        });
-        viewer.dataSources.add(geojsonDataSource);
-        viewer.flyTo(geojsonDataSource);
-      } catch (error) {
-        console.error("Error loading GeoJSON:", error);
-      }
-    }
-  });
-  return {
-    destroy: () => {
-      if (geojsonDataSource && viewer) {
-        viewer.dataSources.remove(geojsonDataSource);
-      }
-    }
-  };
-}
-
-// src/cesiumjs_anywidget/js/camera-sync.js
-function initializeCameraSync(viewer, model) {
+/**
+ * Initialize measurement tools for a Cesium viewer
+ * @param {Object} viewer - Cesium Viewer instance
+ * @param {Object} model - Anywidget traitlet model
+ * @param {HTMLElement} container - Container element for toolbar
+ * @returns {Object} Measurement tools API
+ */
+export function initializeMeasurementTools(viewer, model, container) {
   const Cesium = window.Cesium;
-  let cameraUpdateTimeout;
-  function updateCameraFromModel() {
-    if (!viewer)
-      return;
-    const lat = model.get("latitude");
-    const lon = model.get("longitude");
-    const alt = model.get("altitude");
-    const heading = Cesium.Math.toRadians(model.get("heading"));
-    const pitch = Cesium.Math.toRadians(model.get("pitch"));
-    const roll = Cesium.Math.toRadians(model.get("roll"));
-    viewer.camera.setView({
-      destination: Cesium.Cartesian3.fromDegrees(lon, lat, alt),
-      orientation: { heading, pitch, roll }
-    });
-  }
-  function updateModelFromCamera() {
-    if (!viewer)
-      return;
-    const position = viewer.camera.positionCartographic;
-    const heading = viewer.camera.heading;
-    const pitch = viewer.camera.pitch;
-    const roll = viewer.camera.roll;
-    model.set("latitude", Cesium.Math.toDegrees(position.latitude));
-    model.set("longitude", Cesium.Math.toDegrees(position.longitude));
-    model.set("altitude", position.height);
-    model.set("heading", Cesium.Math.toDegrees(heading));
-    model.set("pitch", Cesium.Math.toDegrees(pitch));
-    model.set("roll", Cesium.Math.toDegrees(roll));
-    model.save_changes();
-  }
-  function handleCameraChanged() {
-    clearTimeout(cameraUpdateTimeout);
-    cameraUpdateTimeout = setTimeout(() => {
-      updateModelFromCamera();
-    }, 500);
-  }
-  updateCameraFromModel();
-  viewer.camera.changed.addEventListener(handleCameraChanged);
-  model.on("change:latitude", updateCameraFromModel);
-  model.on("change:longitude", updateCameraFromModel);
-  model.on("change:altitude", updateCameraFromModel);
-  model.on("change:heading", updateCameraFromModel);
-  model.on("change:pitch", updateCameraFromModel);
-  model.on("change:roll", updateCameraFromModel);
-  return {
-    updateCameraFromModel,
-    updateModelFromCamera,
-    destroy: () => {
-      clearTimeout(cameraUpdateTimeout);
-      viewer.camera.changed.removeEventListener(handleCameraChanged);
-    }
-  };
-}
-
-// src/cesiumjs_anywidget/js/measurement-tools.js
-function initializeMeasurementTools(viewer, model, container) {
-  const Cesium = window.Cesium;
+  
   let measurementHandler = null;
   let measurementState = {
     mode: null,
@@ -177,8 +23,11 @@ function initializeMeasurementTools(viewer, model, container) {
     labels: [],
     polylines: [],
     polyline: null,
-    tempPolyline: null
+    tempPolyline: null,
   };
+
+  // ============= UI CREATION =============
+  
   const toolbarDiv = document.createElement("div");
   toolbarDiv.style.cssText = `
     position: absolute;
@@ -193,6 +42,7 @@ function initializeMeasurementTools(viewer, model, container) {
     gap: 5px;
   `;
   container.appendChild(toolbarDiv);
+
   function createMeasurementButton(text, mode) {
     const btn = document.createElement("button");
     btn.textContent = text;
@@ -206,11 +56,9 @@ function initializeMeasurementTools(viewer, model, container) {
       font-size: 12px;
       transition: background 0.2s;
     `;
-    btn.onmouseover = () => {
-      btn.style.background = "#2980b9";
-    };
-    btn.onmouseout = () => {
-      btn.style.background = measurementState.mode === mode ? "#e74c3c" : "#3498db";
+    btn.onmouseover = () => { btn.style.background = '#2980b9'; };
+    btn.onmouseout = () => { 
+      btn.style.background = measurementState.mode === mode ? '#e74c3c' : '#3498db';
     };
     btn.onclick = () => {
       if (measurementState.mode === mode) {
@@ -223,12 +71,14 @@ function initializeMeasurementTools(viewer, model, container) {
     };
     return btn;
   }
-  const distanceBtn = createMeasurementButton("\u{1F4CF} Distance", "distance");
-  const multiDistanceBtn = createMeasurementButton("\u{1F4D0} Multi Distance", "multi-distance");
-  const heightBtn = createMeasurementButton("\u{1F4CA} Height", "height");
-  const areaBtn = createMeasurementButton("\u2B1B Area", "area");
+
+  const distanceBtn = createMeasurementButton("📏 Distance", "distance");
+  const multiDistanceBtn = createMeasurementButton("📐 Multi Distance", "multi-distance");
+  const heightBtn = createMeasurementButton("📊 Height", "height");
+  const areaBtn = createMeasurementButton("⬛ Area", "area");
+  
   const clearBtn = document.createElement("button");
-  clearBtn.textContent = "\u{1F5D1}\uFE0F Clear";
+  clearBtn.textContent = "🗑️ Clear";
   clearBtn.style.cssText = `
     padding: 8px 12px;
     background: #e74c3c;
@@ -239,23 +89,23 @@ function initializeMeasurementTools(viewer, model, container) {
     font-size: 12px;
     transition: background 0.2s;
   `;
-  clearBtn.onmouseover = () => {
-    clearBtn.style.background = "#c0392b";
-  };
-  clearBtn.onmouseout = () => {
-    clearBtn.style.background = "#e74c3c";
-  };
+  clearBtn.onmouseover = () => { clearBtn.style.background = '#c0392b'; };
+  clearBtn.onmouseout = () => { clearBtn.style.background = '#e74c3c'; };
   clearBtn.onclick = () => {
     clearAllMeasurements();
     model.set("measurement_mode", "");
     model.set("measurement_results", []);
     model.save_changes();
   };
+
   toolbarDiv.appendChild(distanceBtn);
   toolbarDiv.appendChild(multiDistanceBtn);
   toolbarDiv.appendChild(heightBtn);
   toolbarDiv.appendChild(areaBtn);
   toolbarDiv.appendChild(clearBtn);
+
+  // ============= HELPER FUNCTIONS =============
+  
   function getPosition(screenPosition) {
     const pickedObject = viewer.scene.pick(screenPosition);
     if (viewer.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
@@ -267,25 +117,27 @@ function initializeMeasurementTools(viewer, model, container) {
     const ray = viewer.camera.getPickRay(screenPosition);
     return viewer.scene.globe.pick(ray, viewer.scene);
   }
+
   function addMarker(position, color = Cesium.Color.RED) {
     const marker = viewer.entities.add({
-      position,
+      position: position,
       point: {
         pixelSize: 10,
-        color,
+        color: color,
         outlineColor: Cesium.Color.WHITE,
         outlineWidth: 2,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY
-      }
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
     });
     measurementState.entities.push(marker);
     return marker;
   }
+
   function addLabel(position, text) {
     const label = viewer.entities.add({
-      position,
+      position: position,
       label: {
-        text,
+        text: text,
         font: "14px sans-serif",
         fillColor: Cesium.Color.WHITE,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
@@ -294,30 +146,34 @@ function initializeMeasurementTools(viewer, model, container) {
         pixelOffset: new Cesium.Cartesian2(0, -20),
         showBackground: true,
         backgroundColor: Cesium.Color.fromAlpha(Cesium.Color.BLACK, 0.7),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY
-      }
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
     });
     measurementState.labels.push(label);
     return label;
   }
+
   function calculateDistance(point1, point2) {
     return Cesium.Cartesian3.distance(point1, point2);
   }
+
   function getMidpoint(point1, point2) {
     return Cesium.Cartesian3.lerp(point1, point2, 0.5, new Cesium.Cartesian3());
   }
+
   function cartesianToLatLonAlt(cartesian) {
     const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
     return {
       lat: Cesium.Math.toDegrees(cartographic.latitude),
       lon: Cesium.Math.toDegrees(cartographic.longitude),
-      alt: cartographic.height
+      alt: cartographic.height,
     };
   }
+
   function clearAllMeasurements() {
-    measurementState.entities.forEach((e) => viewer.entities.remove(e));
-    measurementState.labels.forEach((l) => viewer.entities.remove(l));
-    measurementState.polylines.forEach((p) => viewer.entities.remove(p));
+    measurementState.entities.forEach(e => viewer.entities.remove(e));
+    measurementState.labels.forEach(l => viewer.entities.remove(l));
+    measurementState.polylines.forEach(p => viewer.entities.remove(p));
     if (measurementState.polyline) {
       viewer.entities.remove(measurementState.polyline);
     }
@@ -331,6 +187,7 @@ function initializeMeasurementTools(viewer, model, container) {
     measurementState.polyline = null;
     measurementState.tempPolyline = null;
   }
+
   function clearInProgressMeasurement() {
     if (measurementState.tempPolyline) {
       viewer.entities.remove(measurementState.tempPolyline);
@@ -339,18 +196,22 @@ function initializeMeasurementTools(viewer, model, container) {
     if ((measurementState.mode === "multi-distance" || measurementState.mode === "area") && measurementState.polyline) {
       viewer.entities.remove(measurementState.polyline);
       measurementState.polyline = null;
-      measurementState.polylines = measurementState.polylines.filter((p) => p !== measurementState.polyline);
+      measurementState.polylines = measurementState.polylines.filter(p => p !== measurementState.polyline);
     }
     measurementState.points = [];
     measurementState.tempPoint = null;
   }
+
+  // ============= MEASUREMENT HANDLERS =============
+  
   function handleDistanceClick(click) {
     const position = getPosition(click.position);
-    if (!position)
-      return;
+    if (!position) return;
+
     if (measurementState.points.length === 0) {
       measurementState.points.push(position);
       addMarker(position);
+      
       measurementState.tempPolyline = viewer.entities.add({
         polyline: {
           positions: new Cesium.CallbackProperty(() => {
@@ -361,15 +222,17 @@ function initializeMeasurementTools(viewer, model, container) {
           }, false),
           width: 3,
           material: Cesium.Color.YELLOW,
-          depthFailMaterial: Cesium.Color.YELLOW
-        }
+          depthFailMaterial: Cesium.Color.YELLOW,
+        },
       });
     } else if (measurementState.points.length === 1) {
       measurementState.points.push(position);
       addMarker(position);
+      
       const distance = calculateDistance(measurementState.points[0], measurementState.points[1]);
       const midpoint = getMidpoint(measurementState.points[0], measurementState.points[1]);
       addLabel(midpoint, `${distance.toFixed(2)} m`);
+
       if (measurementState.tempPolyline) {
         viewer.entities.remove(measurementState.tempPolyline);
         measurementState.tempPolyline = null;
@@ -379,35 +242,39 @@ function initializeMeasurementTools(viewer, model, container) {
           positions: measurementState.points,
           width: 3,
           material: Cesium.Color.RED,
-          depthFailMaterial: Cesium.Color.RED
-        }
+          depthFailMaterial: Cesium.Color.RED,
+        },
       });
       measurementState.polylines.push(measurementState.polyline);
+
       const results = model.get("measurement_results") || [];
       results.push({
         type: "distance",
         value: distance,
-        points: measurementState.points.map(cartesianToLatLonAlt)
+        points: measurementState.points.map(cartesianToLatLonAlt),
       });
       model.set("measurement_results", results);
       model.save_changes();
+
       measurementState.points = [];
     }
   }
+
   function handleMultiDistanceClick(click) {
     const position = getPosition(click.position);
-    if (!position)
-      return;
+    if (!position) return;
+
     measurementState.points.push(position);
     addMarker(position, Cesium.Color.BLUE);
+
     if (measurementState.points.length === 1) {
       measurementState.polyline = viewer.entities.add({
         polyline: {
           positions: new Cesium.CallbackProperty(() => measurementState.points, false),
           width: 3,
           material: Cesium.Color.BLUE,
-          depthFailMaterial: Cesium.Color.BLUE
-        }
+          depthFailMaterial: Cesium.Color.BLUE,
+        },
       });
       measurementState.polylines.push(measurementState.polyline);
     } else {
@@ -416,6 +283,7 @@ function initializeMeasurementTools(viewer, model, container) {
       const distance = calculateDistance(p1, p2);
       const midpoint = getMidpoint(p1, p2);
       addLabel(midpoint, `${distance.toFixed(2)} m`);
+
       let totalDistance = 0;
       for (let i = 0; i < measurementState.points.length - 1; i++) {
         totalDistance += calculateDistance(
@@ -423,6 +291,7 @@ function initializeMeasurementTools(viewer, model, container) {
           measurementState.points[i + 1]
         );
       }
+
       const results = model.get("measurement_results") || [];
       const lastResult = results[results.length - 1];
       if (lastResult && lastResult.type === "multi-distance" && lastResult.isActive) {
@@ -433,54 +302,62 @@ function initializeMeasurementTools(viewer, model, container) {
           type: "multi-distance",
           value: totalDistance,
           points: measurementState.points.map(cartesianToLatLonAlt),
-          isActive: true
+          isActive: true,
         });
       }
       model.set("measurement_results", results);
       model.save_changes();
     }
   }
+
   function handleHeightClick(click) {
     const pickedPosition = getPosition(click.position);
-    if (!pickedPosition)
-      return;
+    if (!pickedPosition) return;
+
     const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
     const terrainHeight = viewer.scene.globe.getHeight(cartographic) || 0;
     const pickedHeight = cartographic.height;
     const height = pickedHeight - terrainHeight;
+
     const groundPosition = Cesium.Cartesian3.fromRadians(
       cartographic.longitude,
       cartographic.latitude,
       terrainHeight
     );
+
     addMarker(groundPosition, Cesium.Color.GREEN);
     addMarker(pickedPosition, Cesium.Color.GREEN);
+
     const heightLine = viewer.entities.add({
       polyline: {
         positions: [groundPosition, pickedPosition],
         width: 3,
         material: Cesium.Color.GREEN,
-        depthFailMaterial: Cesium.Color.GREEN
-      }
+        depthFailMaterial: Cesium.Color.GREEN,
+      },
     });
     measurementState.polylines.push(heightLine);
+
     const midpoint = getMidpoint(groundPosition, pickedPosition);
     addLabel(midpoint, `${height.toFixed(2)} m`);
+
     const results = model.get("measurement_results") || [];
     results.push({
       type: "height",
       value: height,
-      points: [cartesianToLatLonAlt(pickedPosition)]
+      points: [cartesianToLatLonAlt(pickedPosition)],
     });
     model.set("measurement_results", results);
     model.save_changes();
   }
+
   function handleAreaClick(click) {
     const position = getPosition(click.position);
-    if (!position)
-      return;
+    if (!position) return;
+
     measurementState.points.push(position);
     addMarker(position, Cesium.Color.ORANGE);
+
     if (measurementState.points.length === 1) {
       measurementState.polyline = viewer.entities.add({
         polygon: {
@@ -490,28 +367,34 @@ function initializeMeasurementTools(viewer, model, container) {
           material: Cesium.Color.ORANGE.withAlpha(0.3),
           outline: true,
           outlineColor: Cesium.Color.ORANGE,
-          outlineWidth: 2
-        }
+          outlineWidth: 2,
+        },
       });
       measurementState.polylines.push(measurementState.polyline);
     }
+
     if (measurementState.points.length >= 3) {
       let area = 0;
       const positions = measurementState.points;
+      
       for (let i = 0; i < positions.length; i++) {
         const p1 = Cesium.Cartographic.fromCartesian(positions[i]);
         const p2 = Cesium.Cartographic.fromCartesian(positions[(i + 1) % positions.length]);
+        
         const x1 = p1.longitude * Cesium.Math.DEGREES_PER_RADIAN;
         const y1 = p1.latitude * Cesium.Math.DEGREES_PER_RADIAN;
         const x2 = p2.longitude * Cesium.Math.DEGREES_PER_RADIAN;
         const y2 = p2.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-        area += x1 * y2 - x2 * y1;
+        
+        area += (x1 * y2 - x2 * y1);
       }
+      
       area = Math.abs(area / 2);
       const metersPerDegree = 111320;
       area = area * metersPerDegree * metersPerDegree;
+      
       let centroidX = 0, centroidY = 0, centroidZ = 0;
-      positions.forEach((pos) => {
+      positions.forEach(pos => {
         centroidX += pos.x;
         centroidY += pos.y;
         centroidZ += pos.z;
@@ -521,13 +404,19 @@ function initializeMeasurementTools(viewer, model, container) {
         centroidY / positions.length,
         centroidZ / positions.length
       );
-      const areaText = area >= 1e6 ? `${(area / 1e6).toFixed(2)} km\xB2` : `${area.toFixed(2)} m\xB2`;
-      const oldLabel = measurementState.labels.find((l) => l.label && l.label.text._value.includes("m\xB2") || l.label.text._value.includes("km\xB2"));
+      
+      const areaText = area >= 1000000 
+        ? `${(area / 1000000).toFixed(2)} km²`
+        : `${area.toFixed(2)} m²`;
+      
+      const oldLabel = measurementState.labels.find(l => l.label && l.label.text._value.includes('m²') || l.label.text._value.includes('km²'));
       if (oldLabel) {
         viewer.entities.remove(oldLabel);
-        measurementState.labels = measurementState.labels.filter((l) => l !== oldLabel);
+        measurementState.labels = measurementState.labels.filter(l => l !== oldLabel);
       }
+      
       addLabel(centroid, areaText);
+      
       const results = model.get("measurement_results") || [];
       const lastResult = results[results.length - 1];
       if (lastResult && lastResult.type === "area" && lastResult.isActive) {
@@ -538,13 +427,14 @@ function initializeMeasurementTools(viewer, model, container) {
           type: "area",
           value: area,
           points: measurementState.points.map(cartesianToLatLonAlt),
-          isActive: true
+          isActive: true,
         });
       }
       model.set("measurement_results", results);
       model.save_changes();
     }
   }
+
   function handleMouseMove(movement) {
     if (measurementState.mode === "distance" && measurementState.points.length === 1) {
       const position = getPosition(movement.endPosition);
@@ -553,20 +443,27 @@ function initializeMeasurementTools(viewer, model, container) {
       }
     }
   }
+
+  // ============= MODE MANAGEMENT =============
+  
   function enableMeasurementMode(mode) {
     if (measurementHandler) {
       measurementHandler.destroy();
       measurementHandler = null;
     }
+
     clearInProgressMeasurement();
     measurementState.mode = mode;
+
     distanceBtn.style.background = mode === "distance" ? "#e74c3c" : "#3498db";
     multiDistanceBtn.style.background = mode === "multi-distance" ? "#e74c3c" : "#3498db";
     heightBtn.style.background = mode === "height" ? "#e74c3c" : "#3498db";
     areaBtn.style.background = mode === "area" ? "#e74c3c" : "#3498db";
-    if (!mode)
-      return;
+
+    if (!mode) return;
+
     measurementHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    
     if (mode === "distance") {
       measurementHandler.setInputAction(handleDistanceClick, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       measurementHandler.setInputAction(handleMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -602,16 +499,23 @@ function initializeMeasurementTools(viewer, model, container) {
       }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
     }
   }
+
+  // ============= MODEL LISTENERS =============
+  
   model.on("change:measurement_mode", () => {
     const mode = model.get("measurement_mode");
     enableMeasurementMode(mode);
   });
+
   model.on("change:measurement_results", () => {
     const results = model.get("measurement_results") || [];
     if (results.length === 0) {
       clearAllMeasurements();
     }
   });
+
+  // ============= PUBLIC API =============
+  
   return {
     enableMeasurementMode,
     clearAllMeasurements,
@@ -626,57 +530,3 @@ function initializeMeasurementTools(viewer, model, container) {
     }
   };
 }
-
-// src/cesiumjs_anywidget/js/index.js
-window.CESIUM_BASE_URL = "https://cesium.com/downloads/cesiumjs/releases/1.135/Build/Cesium/";
-async function render({ model, el }) {
-  const Cesium = await loadCesiumJS();
-  const container = document.createElement("div");
-  container.style.width = "100%";
-  container.style.height = model.get("height");
-  container.style.position = "relative";
-  el.appendChild(container);
-  const ionToken = model.get("ion_access_token");
-  if (ionToken) {
-    Cesium.Ion.defaultAccessToken = ionToken;
-  }
-  const loadingDiv = createLoadingIndicator(container, !!ionToken);
-  let viewer = null;
-  let cameraSync = null;
-  let measurementTools = null;
-  let geoJsonLoader = null;
-  (async () => {
-    try {
-      viewer = createViewer(container, model, Cesium);
-      if (loadingDiv.parentNode) {
-        loadingDiv.remove();
-      }
-      cameraSync = initializeCameraSync(viewer, model);
-      measurementTools = initializeMeasurementTools(viewer, model, container);
-      setupViewerListeners(viewer, model, container, Cesium);
-      geoJsonLoader = setupGeoJSONLoader(viewer, model, Cesium);
-    } catch (error) {
-      console.error("Error initializing CesiumJS viewer:", error);
-      loadingDiv.textContent = `Error: ${error.message}`;
-      loadingDiv.style.background = "rgba(255,0,0,0.8)";
-    }
-  })();
-  return () => {
-    if (cameraSync) {
-      cameraSync.destroy();
-    }
-    if (measurementTools) {
-      measurementTools.destroy();
-    }
-    if (geoJsonLoader) {
-      geoJsonLoader.destroy();
-    }
-    if (viewer) {
-      viewer.destroy();
-    }
-  };
-}
-var js_default = { render };
-export {
-  js_default as default
-};

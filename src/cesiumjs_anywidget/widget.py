@@ -61,6 +61,11 @@ class CesiumWidget(anywidget.AnyWidget):
     geojson_data = traitlets.Dict(default_value=None, allow_none=True, 
                                    help="GeoJSON data to display").tag(sync=True)
     
+    # Measurement tools
+    measurement_mode = traitlets.Unicode("", help="Active measurement mode: 'distance', 'multi-distance', 'height', or '' for none").tag(sync=True)
+    measurement_results = traitlets.List(trait=traitlets.Dict(), default_value=[], 
+                                         help="List of measurement results").tag(sync=True)
+    
     def __init__(self, **kwargs):
         """Initialize the CesiumWidget.
         
@@ -136,6 +141,46 @@ class CesiumWidget(anywidget.AnyWidget):
             import json
             geojson = json.loads(geojson)
         self.geojson_data = geojson
+    
+    def enable_measurement(self, mode="distance"):
+        """Enable a measurement tool.
+        
+        Parameters
+        ----------
+        mode : str, optional
+            Measurement mode to enable:
+            - 'distance': Two-point distance measurement
+            - 'multi-distance': Multi-point polyline measurement
+            - 'height': Vertical height measurement from ground
+            - 'area': Polygon area measurement
+            Default: 'distance'
+        """
+        valid_modes = ['distance', 'multi-distance', 'height', 'area']
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid mode '{mode}'. Must be one of {valid_modes}")
+        self.measurement_mode = mode
+    
+    def disable_measurement(self):
+        """Disable the active measurement tool and clear measurements."""
+        self.measurement_mode = ""
+        self.measurement_results = []
+    
+    def get_measurements(self):
+        """Get all measurement results.
+        
+        Returns
+        -------
+        list of dict
+            List of measurement results, each containing:
+            - type: measurement type ('distance', 'multi-distance', 'height', or 'area')
+            - value: measured value in meters (or square meters for area)
+            - points: list of {lat, lon, alt} coordinates
+        """
+        return self.measurement_results
+    
+    def clear_measurements(self):
+        """Clear all measurements from the viewer."""
+        self.measurement_results = []
     
     def debug_info(self):
         """Print debug information about the widget.

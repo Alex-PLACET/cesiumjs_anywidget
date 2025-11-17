@@ -4,12 +4,13 @@ A Jupyter widget for interactive 3D globe visualization using [CesiumJS](https:/
 
 ## Features
 
-- 🌍 Interactive 3D globe with CesiumJS
-- 🎯 Camera position control from Python
-- 🔄 Bidirectional state synchronization
-- 📍 GeoJSON data visualization
-- 🏔️ Terrain and imagery layers
-- ⚡ Hot module replacement for development
+- 🌍 **Interactive 3D Globe**: Full CesiumJS viewer integration
+- 🎯 **Camera Control**: Fly to locations with smooth animations
+- 🔄 **Bidirectional Sync**: Camera state syncs between Python and JavaScript
+- 🗺️ **GeoJSON Support**: Load and visualize GeoJSON data
+- 🏔️ **Terrain & Imagery**: World terrain and satellite imagery
+- 📏 **Measurement Tools**: Built-in distance, multi-point, and height measurement tools
+- ⚙️ **Highly Configurable**: Customize viewer options and UI elements
 
 ## Installation
 
@@ -138,6 +139,70 @@ make test-cov
 
 See [tests/README.md](tests/README.md) for detailed testing documentation.
 
+## Measurement Tools
+
+The widget includes built-in measurement tools for spatial analysis:
+
+### Distance Measurement
+
+Measure the distance between two points:
+
+```python
+# Enable distance measurement mode
+widget.enable_measurement(mode="distance")
+
+# Click two points in the viewer to measure distance
+# Results are automatically synced to Python
+measurements = widget.get_measurements()
+print(f"Distance: {measurements[0]['value']:.2f} meters")
+```
+
+### Multi-Point Distance Measurement
+
+Measure distances along a polyline with multiple points:
+
+```python
+# Enable multi-point distance measurement
+widget.enable_measurement(mode="multi-distance")
+
+# Click multiple points to create a polyline
+# Right-click to finish the measurement
+# Total distance is calculated automatically
+```
+
+### Height Measurement
+
+Measure vertical height from ground to a point (useful for buildings):
+
+```python
+# Enable height measurement
+widget.enable_measurement(mode="height")
+
+# Click on a point to measure its height above ground
+measurements = widget.get_measurements()
+print(f"Height: {measurements[0]['value']:.2f} meters")
+```
+
+### Managing Measurements
+
+```python
+# Get all measurement results
+measurements = widget.get_measurements()
+for m in measurements:
+    print(f"Type: {m['type']}, Value: {m['value']:.2f}m")
+
+# Clear all measurements
+widget.clear_measurements()
+
+# Disable measurement mode
+widget.disable_measurement()
+```
+
+Each measurement includes:
+- `type`: Measurement type (`'distance'`, `'multi-distance'`, or `'height'`)
+- `value`: Measured value in meters
+- `points`: List of coordinates with `lat`, `lon`, `alt` properties
+
 ## API Reference
 
 ### CesiumWidget
@@ -156,11 +221,17 @@ See [tests/README.md](tests/README.md) for detailed testing documentation.
 - `show_animation` (bool): Show animation widget (default: False)
 - `ion_access_token` (str): Cesium Ion access token (optional)
 - `geojson_data` (dict): GeoJSON data to display (optional)
+- `measurement_mode` (str): Active measurement mode (default: "")
+- `measurement_results` (list): List of measurement results (default: [])
 
 **Methods:**
 - `fly_to(latitude, longitude, altitude=10000, duration=3.0)`: Fly camera to location
 - `set_view(latitude, longitude, altitude=10000, heading=0.0, pitch=-90.0, roll=0.0)`: Set camera view instantly
 - `load_geojson(geojson)`: Load GeoJSON data for visualization
+- `enable_measurement(mode="distance")`: Enable measurement tool (modes: 'distance', 'multi-distance', 'height')
+- `disable_measurement()`: Disable measurement tool and clear measurements
+- `get_measurements()`: Get all measurement results
+- `clear_measurements()`: Clear all measurements from viewer
 
 ## Examples
 
