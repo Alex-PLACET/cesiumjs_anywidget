@@ -112,6 +112,16 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     container.style.height = model.get("height");
     viewer.resize();
   });
+
+  model.on("change:show_timeline", () => {
+    if (!viewer || !viewer.timeline) return;
+    viewer.timeline.container.style.visibility = model.get("show_timeline") ? "visible" : "hidden";
+  });
+
+  model.on("change:show_animation", () => {
+    if (!viewer || !viewer.animation) return;
+    viewer.animation.container.style.visibility = model.get("show_animation") ? "visible" : "hidden";
+  });
 }
 
 /**
@@ -151,6 +161,44 @@ export function setupGeoJSONLoader(viewer, model, Cesium) {
     destroy: () => {
       if (geojsonDataSource && viewer) {
         viewer.dataSources.remove(geojsonDataSource);
+      }
+    }
+  };
+}
+
+/**
+ * Setup CZML data loading and management
+ * @param {Object} viewer - Cesium Viewer instance
+ * @param {Object} model - Anywidget traitlet model
+ * @param {Object} Cesium - Cesium global object
+ */
+export function setupCZMLLoader(viewer, model, Cesium) {
+  let czmlDataSource = null;
+
+  model.on("change:czml_data", async () => {
+    if (!viewer) return;
+    const czmlData = model.get("czml_data");
+    
+    if (czmlDataSource) {
+      viewer.dataSources.remove(czmlDataSource);
+      czmlDataSource = null;
+    }
+
+    if (czmlData && Array.isArray(czmlData) && czmlData.length > 0) {
+      try {
+        czmlDataSource = await Cesium.CzmlDataSource.load(czmlData);
+        viewer.dataSources.add(czmlDataSource);
+        viewer.flyTo(czmlDataSource);
+      } catch (error) {
+        console.error("Error loading CZML:", error);
+      }
+    }
+  });
+
+  return {
+    destroy: () => {
+      if (czmlDataSource && viewer) {
+        viewer.dataSources.remove(czmlDataSource);
       }
     }
   };

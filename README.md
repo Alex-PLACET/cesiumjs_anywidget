@@ -95,6 +95,58 @@ geojson_data = {
 widget.load_geojson(geojson_data)
 ```
 
+### Visualize CZML Data
+
+CZML (Cesium Language) is a JSON format for describing time-dynamic graphical scenes. It's particularly useful for animations and complex visualizations.
+
+```python
+# Simple CZML example - as Python list
+czml_data = [
+    {
+        "id": "document",
+        "name": "Simple CZML",
+        "version": "1.0"
+    },
+    {
+        "id": "point",
+        "name": "Location",
+        "position": {
+            "cartographicDegrees": [-74.0060, 40.7128, 0]
+        },
+        "point": {
+            "pixelSize": 10,
+            "color": {
+                "rgba": [255, 0, 0, 255]
+            }
+        }
+    }
+]
+
+widget.load_czml(czml_data)
+```
+
+Or from a JSON string:
+
+```python
+import json
+
+# CZML as JSON string
+czml_json = json.dumps([
+    {"id": "document", "version": "1.0"},
+    {
+        "id": "satellite",
+        "position": {
+            "cartographicDegrees": [-75, 40, 500000]
+        },
+        "point": {"pixelSize": 8, "color": {"rgba": [0, 255, 0, 255]}}
+    }
+])
+
+widget.load_czml(czml_json)
+```
+
+You can use the [czml3](https://github.com/Stoops-ML/czml3) library to generate CZML more easily, then pass the output as a string or list.
+
 ### Configure Viewer Options
 
 ```python
@@ -287,6 +339,7 @@ Each measurement includes:
 - `show_animation` (bool): Show animation widget (default: False)
 - `ion_access_token` (str): Cesium Ion access token (optional)
 - `geojson_data` (dict): GeoJSON data to display (optional)
+- `czml_data` (list): CZML data to display (optional)
 - `measurement_mode` (str): Active measurement mode (default: "")
 - `measurement_results` (list): List of measurement results (default: [])
 - `show_measurement_tools` (bool): Show measurement toolbar (default: True)
@@ -296,6 +349,7 @@ Each measurement includes:
 - `fly_to(latitude, longitude, altitude=10000, duration=3.0)`: Fly camera to location
 - `set_view(latitude, longitude, altitude=10000, heading=0.0, pitch=-90.0, roll=0.0)`: Set camera view instantly
 - `load_geojson(geojson)`: Load GeoJSON data for visualization
+- `load_czml(czml)`: Load CZML data for time-dynamic visualization
 - `enable_measurement(mode="distance")`: Enable measurement tool (modes: 'distance', 'multi-distance', 'height', 'area')
 - `disable_measurement()`: Disable measurement tool
 - `get_measurements()`: Get all measurement results

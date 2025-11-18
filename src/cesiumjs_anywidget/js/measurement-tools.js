@@ -613,21 +613,39 @@ export function initializeMeasurementTools(viewer, model, container) {
       }
       measurement.value = totalDistance;
     } else if (measurement.type === "area") {
+      // Use Cesium's PolygonGeometry to calculate geodesic area
+      const polygonHierarchy = new Cesium.PolygonHierarchy(positions);
+      const geometry = Cesium.PolygonGeometry.createGeometry(
+        new Cesium.PolygonGeometry({
+          polygonHierarchy: polygonHierarchy,
+          perPositionHeight: false,
+          arcType: Cesium.ArcType.GEODESIC
+        })
+      );
+      
       let area = 0;
-      for (let i = 0; i < positions.length; i++) {
-        const p1 = Cesium.Cartographic.fromCartesian(positions[i]);
-        const p2 = Cesium.Cartographic.fromCartesian(positions[(i + 1) % positions.length]);
+      if (geometry) {
+        const positionsArray = geometry.attributes.position.values;
+        const indices = geometry.indices;
         
-        const x1 = p1.longitude * Cesium.Math.DEGREES_PER_RADIAN;
-        const y1 = p1.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-        const x2 = p2.longitude * Cesium.Math.DEGREES_PER_RADIAN;
-        const y2 = p2.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-        
-        area += (x1 * y2 - x2 * y1);
+        for (let i = 0; i < indices.length; i += 3) {
+          const i0 = indices[i] * 3;
+          const i1 = indices[i + 1] * 3;
+          const i2 = indices[i + 2] * 3;
+          
+          const v0 = new Cesium.Cartesian3(positionsArray[i0], positionsArray[i0 + 1], positionsArray[i0 + 2]);
+          const v1 = new Cesium.Cartesian3(positionsArray[i1], positionsArray[i1 + 1], positionsArray[i1 + 2]);
+          const v2 = new Cesium.Cartesian3(positionsArray[i2], positionsArray[i2 + 1], positionsArray[i2 + 2]);
+          
+          const edge1 = Cesium.Cartesian3.subtract(v1, v0, new Cesium.Cartesian3());
+          const edge2 = Cesium.Cartesian3.subtract(v2, v0, new Cesium.Cartesian3());
+          const crossProduct = Cesium.Cartesian3.cross(edge1, edge2, new Cesium.Cartesian3());
+          const triangleArea = Cesium.Cartesian3.magnitude(crossProduct) / 2.0;
+          
+          area += triangleArea;
+        }
       }
-      area = Math.abs(area / 2);
-      const metersPerDegree = 111320;
-      measurement.value = area * metersPerDegree * metersPerDegree;
+      measurement.value = area;
     }
     
     // Sync back to Python
@@ -969,24 +987,43 @@ export function initializeMeasurementTools(viewer, model, container) {
     }
 
     if (measurementState.points.length >= 3) {
-      let area = 0;
       const positions = measurementState.points;
       
-      for (let i = 0; i < positions.length; i++) {
-        const p1 = Cesium.Cartographic.fromCartesian(positions[i]);
-        const p2 = Cesium.Cartographic.fromCartesian(positions[(i + 1) % positions.length]);
-        
-        const x1 = p1.longitude * Cesium.Math.DEGREES_PER_RADIAN;
-        const y1 = p1.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-        const x2 = p2.longitude * Cesium.Math.DEGREES_PER_RADIAN;
-        const y2 = p2.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-        
-        area += (x1 * y2 - x2 * y1);
-      }
+      // Use Cesium's PolygonGeometry to calculate geodesic area on the ellipsoid
+      const polygonHierarchy = new Cesium.PolygonHierarchy(positions);
+      const geometry = Cesium.PolygonGeometry.createGeometry(
+        new Cesium.PolygonGeometry({
+          polygonHierarchy: polygonHierarchy,
+          perPositionHeight: false,
+          arcType: Cesium.ArcType.GEODESIC
+        })
+      );
       
-      area = Math.abs(area / 2);
-      const metersPerDegree = 111320;
-      area = area * metersPerDegree * metersPerDegree;
+      // Calculate area using triangulated geometry
+      let area = 0;
+      if (geometry) {
+        const positionsArray = geometry.attributes.position.values;
+        const indices = geometry.indices;
+        
+        // Sum up the area of all triangles
+        for (let i = 0; i < indices.length; i += 3) {
+          const i0 = indices[i] * 3;
+          const i1 = indices[i + 1] * 3;
+          const i2 = indices[i + 2] * 3;
+          
+          const v0 = new Cesium.Cartesian3(positionsArray[i0], positionsArray[i0 + 1], positionsArray[i0 + 2]);
+          const v1 = new Cesium.Cartesian3(positionsArray[i1], positionsArray[i1 + 1], positionsArray[i1 + 2]);
+          const v2 = new Cesium.Cartesian3(positionsArray[i2], positionsArray[i2 + 1], positionsArray[i2 + 2]);
+          
+          // Calculate triangle area using cross product
+          const edge1 = Cesium.Cartesian3.subtract(v1, v0, new Cesium.Cartesian3());
+          const edge2 = Cesium.Cartesian3.subtract(v2, v0, new Cesium.Cartesian3());
+          const crossProduct = Cesium.Cartesian3.cross(edge1, edge2, new Cesium.Cartesian3());
+          const triangleArea = Cesium.Cartesian3.magnitude(crossProduct) / 2.0;
+          
+          area += triangleArea;
+        }
+      }
       
       // Calculate centroid in geographic coordinates for better accuracy
       let centroidLon = 0, centroidLat = 0;
@@ -1222,23 +1259,38 @@ export function initializeMeasurementTools(viewer, model, container) {
     });
     measurementState.polylines.push(polygon);
     
-    // Calculate area
-    let area = 0;
-    for (let i = 0; i < positions.length; i++) {
-      const p1 = Cesium.Cartographic.fromCartesian(positions[i]);
-      const p2 = Cesium.Cartographic.fromCartesian(positions[(i + 1) % positions.length]);
-      
-      const x1 = p1.longitude * Cesium.Math.DEGREES_PER_RADIAN;
-      const y1 = p1.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-      const x2 = p2.longitude * Cesium.Math.DEGREES_PER_RADIAN;
-      const y2 = p2.latitude * Cesium.Math.DEGREES_PER_RADIAN;
-      
-      area += (x1 * y2 - x2 * y1);
-    }
+    // Calculate area using Cesium's PolygonGeometry
+    const polygonHierarchy = new Cesium.PolygonHierarchy(positions);
+    const geometry = Cesium.PolygonGeometry.createGeometry(
+      new Cesium.PolygonGeometry({
+        polygonHierarchy: polygonHierarchy,
+        perPositionHeight: false,
+        arcType: Cesium.ArcType.GEODESIC
+      })
+    );
     
-    area = Math.abs(area / 2);
-    const metersPerDegree = 111320;
-    area = area * metersPerDegree * metersPerDegree;
+    let area = 0;
+    if (geometry) {
+      const positionsArray = geometry.attributes.position.values;
+      const indices = geometry.indices;
+      
+      for (let i = 0; i < indices.length; i += 3) {
+        const i0 = indices[i] * 3;
+        const i1 = indices[i + 1] * 3;
+        const i2 = indices[i + 2] * 3;
+        
+        const v0 = new Cesium.Cartesian3(positionsArray[i0], positionsArray[i0 + 1], positionsArray[i0 + 2]);
+        const v1 = new Cesium.Cartesian3(positionsArray[i1], positionsArray[i1 + 1], positionsArray[i1 + 2]);
+        const v2 = new Cesium.Cartesian3(positionsArray[i2], positionsArray[i2 + 1], positionsArray[i2 + 2]);
+        
+        const edge1 = Cesium.Cartesian3.subtract(v1, v0, new Cesium.Cartesian3());
+        const edge2 = Cesium.Cartesian3.subtract(v2, v0, new Cesium.Cartesian3());
+        const crossProduct = Cesium.Cartesian3.cross(edge1, edge2, new Cesium.Cartesian3());
+        const triangleArea = Cesium.Cartesian3.magnitude(crossProduct) / 2.0;
+        
+        area += triangleArea;
+      }
+    }
     
     // Calculate centroid and place label at ground level
     let centroidLon = 0, centroidLat = 0;

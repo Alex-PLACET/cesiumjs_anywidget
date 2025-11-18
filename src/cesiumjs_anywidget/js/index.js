@@ -5,7 +5,7 @@
  * and measurement tools by composing specialized modules.
  */
 
-import { loadCesiumJS, createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader } from './viewer-init.js';
+import { loadCesiumJS, createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader } from './viewer-init.js';
 import { initializeCameraSync } from './camera-sync.js';
 import { initializeMeasurementTools } from './measurement-tools.js';
 
@@ -43,6 +43,7 @@ async function render({ model, el }) {
   let cameraSync = null;
   let measurementTools = null;
   let geoJsonLoader = null;
+  let czmlLoader = null;
 
   // Async initialization
   (async () => {
@@ -66,6 +67,9 @@ async function render({ model, el }) {
 
       // Setup GeoJSON data loader
       geoJsonLoader = setupGeoJSONLoader(viewer, model, Cesium);
+      
+      // Setup CZML data loader
+      czmlLoader = setupCZMLLoader(viewer, model, Cesium);
 
     } catch (error) {
       console.error("Error initializing CesiumJS viewer:", error);
@@ -84,6 +88,9 @@ async function render({ model, el }) {
     }
     if (geoJsonLoader) {
       geoJsonLoader.destroy();
+    }
+    if (czmlLoader) {
+      czmlLoader.destroy();
     }
     if (viewer) {
       viewer.destroy();

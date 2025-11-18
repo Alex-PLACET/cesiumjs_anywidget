@@ -29,8 +29,8 @@ class TestWidgetInitialization:
         assert widget_instance.height == "600px"
         assert widget_instance.enable_terrain is True
         assert widget_instance.enable_lighting is False
-        assert widget_instance.show_timeline is False
-        assert widget_instance.show_animation is False
+        assert widget_instance.show_timeline is True
+        assert widget_instance.show_animation is True
     
     def test_default_ion_token(self, widget_instance):
         """Test default Cesium Ion token."""
