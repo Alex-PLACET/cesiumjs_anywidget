@@ -198,10 +198,76 @@ widget.clear_measurements()
 widget.disable_measurement()
 ```
 
+### Loading Measurements from Python
+
+You can programmatically add measurements with specific coordinates:
+
+```python
+# Load a distance measurement between two points
+measurements_data = [
+    {
+        "type": "distance",
+        "name": "Bridge Length",
+        "points": [
+            {"coordinates": [-74.0445, 40.6892, 10]},  # [lon, lat, alt]
+            {"coordinates": [-73.9626, 40.8075, 10]}
+        ]
+    }
+]
+widget.load_measurements(measurements_data)
+
+# Load an area measurement (polygon)
+area_data = [
+    {
+        "type": "area",
+        "name": "Central Park",
+        "points": [
+            {"coordinates": [-73.9812, 40.7681, 0]},
+            {"coordinates": [-73.9581, 40.7681, 0]},
+            {"coordinates": [-73.9581, 40.8005, 0]},
+            {"coordinates": [-73.9812, 40.8005, 0]}
+        ]
+    }
+]
+widget.load_measurements(area_data)
+
+# Focus camera on a specific measurement
+widget.focus_on_measurement(0)  # Focus on first measurement
+```
+
+### Controlling Measurement UI Visibility
+
+You can show/hide the measurement tools and list panel:
+
+```python
+# Hide measurement tools (toolbar)
+widget.hide_tools()
+# Or: widget.show_measurement_tools = False
+
+# Show tools again
+widget.show_tools()
+# Or: widget.show_measurement_tools = True
+
+# Hide the measurements list panel
+widget.hide_list()
+# Or: widget.show_measurements_list = False
+
+# Show list again
+widget.show_list()
+# Or: widget.show_measurements_list = True
+
+# Create a clean viewer without measurement tools
+widget = CesiumWidget(
+    show_measurement_tools=False,
+    show_measurements_list=False
+)
+```
+
 Each measurement includes:
-- `type`: Measurement type (`'distance'`, `'multi-distance'`, or `'height'`)
-- `value`: Measured value in meters
+- `type`: Measurement type (`'distance'`, `'multi-distance'`, `'height'`, or `'area'`)
+- `value`: Measured value in meters (distance) or square meters (area)
 - `points`: List of coordinates with `lat`, `lon`, `alt` properties
+- `name`: Optional name for the measurement (auto-generated if not provided)
 
 ## API Reference
 
@@ -223,15 +289,23 @@ Each measurement includes:
 - `geojson_data` (dict): GeoJSON data to display (optional)
 - `measurement_mode` (str): Active measurement mode (default: "")
 - `measurement_results` (list): List of measurement results (default: [])
+- `show_measurement_tools` (bool): Show measurement toolbar (default: True)
+- `show_measurements_list` (bool): Show measurements list panel (default: True)
 
 **Methods:**
 - `fly_to(latitude, longitude, altitude=10000, duration=3.0)`: Fly camera to location
 - `set_view(latitude, longitude, altitude=10000, heading=0.0, pitch=-90.0, roll=0.0)`: Set camera view instantly
 - `load_geojson(geojson)`: Load GeoJSON data for visualization
-- `enable_measurement(mode="distance")`: Enable measurement tool (modes: 'distance', 'multi-distance', 'height')
-- `disable_measurement()`: Disable measurement tool and clear measurements
+- `enable_measurement(mode="distance")`: Enable measurement tool (modes: 'distance', 'multi-distance', 'height', 'area')
+- `disable_measurement()`: Disable measurement tool
 - `get_measurements()`: Get all measurement results
 - `clear_measurements()`: Clear all measurements from viewer
+- `load_measurements(measurements)`: Load measurements from Python data
+- `focus_on_measurement(index)`: Fly camera to specific measurement
+- `show_tools()`: Show the measurement tools toolbar
+- `hide_tools()`: Hide the measurement tools toolbar
+- `show_list()`: Show the measurements list panel
+- `hide_list()`: Hide the measurements list panel
 
 ## Examples
 

@@ -1246,6 +1246,21 @@ function initializeMeasurementTools(viewer, model, container) {
       focusOnMeasurement(triggerData.index);
     }
   });
+  model.on("change:show_measurement_tools", () => {
+    const show = model.get("show_measurement_tools");
+    toolbarDiv.style.display = show ? "flex" : "none";
+    editorPanel.style.display = show ? editorPanel.style.display : "none";
+    if (!show && editState.enabled) {
+      editState.enabled = false;
+      disableEditMode();
+    }
+  });
+  model.on("change:show_measurements_list", () => {
+    const show = model.get("show_measurements_list");
+    measurementsListPanel.style.display = show ? "block" : "none";
+  });
+  toolbarDiv.style.display = model.get("show_measurement_tools") ? "flex" : "none";
+  measurementsListPanel.style.display = model.get("show_measurements_list") ? "block" : "none";
   updateMeasurementsList();
   return {
     enableMeasurementMode,

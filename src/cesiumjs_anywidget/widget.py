@@ -67,6 +67,8 @@ class CesiumWidget(anywidget.AnyWidget):
                                          help="List of measurement results").tag(sync=True)
     load_measurements_trigger = traitlets.Dict(default_value={}, help="Trigger to load measurements with visual display").tag(sync=True)
     focus_measurement_trigger = traitlets.Dict(default_value={}, help="Trigger to focus on a specific measurement").tag(sync=True)
+    show_measurement_tools = traitlets.Bool(default_value=True, help="Show or hide measurement toolbar").tag(sync=True)
+    show_measurements_list = traitlets.Bool(default_value=True, help="Show or hide measurements list panel").tag(sync=True)
     
     def __init__(self, **kwargs):
         """Initialize the CesiumWidget.
@@ -232,6 +234,22 @@ class CesiumWidget(anywidget.AnyWidget):
             "index": index,
             "timestamp": time.time()
         }
+    
+    def show_tools(self):
+        """Show the measurement tools toolbar."""
+        self.show_measurement_tools = True
+    
+    def hide_tools(self):
+        """Hide the measurement tools toolbar."""
+        self.show_measurement_tools = False
+    
+    def show_list(self):
+        """Show the measurements list panel."""
+        self.show_measurements_list = True
+    
+    def hide_list(self):
+        """Hide the measurements list panel."""
+        self.show_measurements_list = False
     
     def debug_info(self):
         """Print debug information about the widget.
