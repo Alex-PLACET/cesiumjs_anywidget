@@ -310,6 +310,29 @@ function initializeMeasurementTools(viewer, model, container) {
     min-width: 250px;
   `;
   container.appendChild(editorPanel);
+  const measurementsListPanel = document.createElement("div");
+  measurementsListPanel.style.cssText = `
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(42, 42, 42, 0.95);
+    padding: 15px;
+    border-radius: 5px;
+    z-index: 1000;
+    color: white;
+    font-family: sans-serif;
+    font-size: 12px;
+    max-width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+  `;
+  measurementsListPanel.innerHTML = `
+    <div style="font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 8px; margin-bottom: 10px;">
+      Measurements
+    </div>
+    <div id="measurements-list-content"></div>
+  `;
+  container.appendChild(measurementsListPanel);
   function getPosition(screenPosition) {
     const pickedObject = viewer.scene.pick(screenPosition);
     if (viewer.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
@@ -675,9 +698,127 @@ function initializeMeasurementTools(viewer, model, container) {
     const newResults = [...results];
     model.set("measurement_results", newResults);
     model.save_changes();
+    updateMeasurementsList();
     if (editorPanel.style.display !== "none") {
       showCoordinateEditor(measurement, editState.pointIndex);
     }
+  }
+  function updateMeasurementsList() {
+    const results = model.get("measurement_results") || [];
+    const listContent = document.getElementById("measurements-list-content");
+    if (results.length === 0) {
+      listContent.innerHTML = '<div style="color: #888; font-style: italic;">No measurements yet</div>';
+      return;
+    }
+    listContent.innerHTML = "";
+    results.forEach((measurement, index) => {
+      const measurementDiv = document.createElement("div");
+      measurementDiv.style.cssText = `
+        background: rgba(255, 255, 255, 0.05);
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background 0.2s;
+        border-left: 3px solid ${getMeasurementColor(measurement.type)};
+      `;
+      measurementDiv.onmouseover = () => {
+        measurementDiv.style.background = "rgba(255, 255, 255, 0.15)";
+      };
+      measurementDiv.onmouseout = () => {
+        measurementDiv.style.background = "rgba(255, 255, 255, 0.05)";
+      };
+      const name = measurement.name || `${getMeasurementTypeLabel(measurement.type)} ${index + 1}`;
+      const nameDiv = document.createElement("div");
+      nameDiv.style.cssText = `
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      `;
+      nameDiv.innerHTML = `
+        <span style="flex: 1;">${name}</span>
+        <button id="rename-${index}" style="padding: 2px 6px; background: #3498db; color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 10px;">\u270E</button>
+      `;
+      measurementDiv.appendChild(nameDiv);
+      const valueDiv = document.createElement("div");
+      valueDiv.style.cssText = "color: #aaa; font-size: 11px; margin-bottom: 3px;";
+      valueDiv.textContent = formatMeasurementValue(measurement);
+      measurementDiv.appendChild(valueDiv);
+      const pointsDiv = document.createElement("div");
+      pointsDiv.style.cssText = "color: #888; font-size: 10px;";
+      pointsDiv.textContent = `${measurement.points.length} point${measurement.points.length > 1 ? "s" : ""}`;
+      measurementDiv.appendChild(pointsDiv);
+      measurementDiv.onclick = (e) => {
+        if (!e.target.id.startsWith("rename-")) {
+          focusOnMeasurement(index);
+        }
+      };
+      listContent.appendChild(measurementDiv);
+      document.getElementById(`rename-${index}`).onclick = (e) => {
+        e.stopPropagation();
+        renameMeasurement(index, name);
+      };
+    });
+  }
+  function getMeasurementColor(type) {
+    const colors = {
+      "distance": "#e74c3c",
+      "multi-distance": "#3498db",
+      "height": "#2ecc71",
+      "area": "#e67e22"
+    };
+    return colors[type] || "#95a5a6";
+  }
+  function getMeasurementTypeLabel(type) {
+    const labels = {
+      "distance": "Distance",
+      "multi-distance": "Multi-Distance",
+      "height": "Height",
+      "area": "Area"
+    };
+    return labels[type] || type;
+  }
+  function formatMeasurementValue(measurement) {
+    const value = measurement.value;
+    const type = measurement.type;
+    if (type === "area") {
+      return value >= 1e6 ? `${(value / 1e6).toFixed(2)} km\xB2` : `${value.toFixed(2)} m\xB2`;
+    } else {
+      return value >= 1e3 ? `${(value / 1e3).toFixed(2)} km` : `${value.toFixed(2)} m`;
+    }
+  }
+  function renameMeasurement(index, currentName) {
+    const newName = prompt("Enter new name for measurement:", currentName);
+    if (newName && newName.trim()) {
+      const results = model.get("measurement_results") || [];
+      const newResults = [...results];
+      newResults[index] = { ...newResults[index], name: newName.trim() };
+      model.set("measurement_results", newResults);
+      model.save_changes();
+      updateMeasurementsList();
+    }
+  }
+  function focusOnMeasurement(index) {
+    const results = model.get("measurement_results") || [];
+    if (index < 0 || index >= results.length)
+      return;
+    const measurement = results[index];
+    if (!measurement.points || measurement.points.length === 0)
+      return;
+    const positions = measurement.points.map(
+      (p) => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0)
+    );
+    const boundingSphere = Cesium.BoundingSphere.fromPoints(positions);
+    viewer.camera.flyToBoundingSphere(boundingSphere, {
+      duration: 1.5,
+      offset: new Cesium.HeadingPitchRange(
+        0,
+        Cesium.Math.toRadians(-45),
+        boundingSphere.radius * 3
+      )
+    });
   }
   function handleDistanceClick(click) {
     const position = getPosition(click.position);
@@ -722,7 +863,8 @@ function initializeMeasurementTools(viewer, model, container) {
       const newResults = [...results, {
         type: "distance",
         value: distance,
-        points: measurementState.points.map(cartesianToLatLonAlt)
+        points: measurementState.points.map(cartesianToLatLonAlt),
+        name: `Distance ${results.filter((r) => r.type === "distance").length + 1}`
       }];
       model.set("measurement_results", newResults);
       model.save_changes();
@@ -769,11 +911,13 @@ function initializeMeasurementTools(viewer, model, container) {
           points: measurementState.points.map(cartesianToLatLonAlt)
         };
       } else {
+        const multiDistanceCount = results.filter((r) => r.type === "multi-distance").length + 1;
         newResults = [...results, {
           type: "multi-distance",
           value: totalDistance,
           points: measurementState.points.map(cartesianToLatLonAlt),
-          isActive: true
+          isActive: true,
+          name: `Multi-Distance ${multiDistanceCount}`
         }];
       }
       model.set("measurement_results", newResults);
@@ -810,7 +954,8 @@ function initializeMeasurementTools(viewer, model, container) {
     const newResults = [...results, {
       type: "height",
       value: height,
-      points: [cartesianToLatLonAlt(groundPosition), cartesianToLatLonAlt(pickedPosition)]
+      points: [cartesianToLatLonAlt(groundPosition), cartesianToLatLonAlt(pickedPosition)],
+      name: `Height ${results.filter((r) => r.type === "height").length + 1}`
     }];
     model.set("measurement_results", newResults);
     model.save_changes();
@@ -881,11 +1026,13 @@ function initializeMeasurementTools(viewer, model, container) {
           points: measurementState.points.map(cartesianToLatLonAlt)
         };
       } else {
+        const areaCount = results.filter((r) => r.type === "area").length + 1;
         newResults = [...results, {
           type: "area",
           value: area,
           points: measurementState.points.map(cartesianToLatLonAlt),
-          isActive: true
+          isActive: true,
+          name: `Area ${areaCount}`
         }];
       }
       model.set("measurement_results", newResults);
@@ -1084,13 +1231,22 @@ function initializeMeasurementTools(viewer, model, container) {
     if (results.length === 0) {
       clearAllMeasurements();
     }
+    updateMeasurementsList();
   });
   model.on("change:load_measurements_trigger", () => {
     const triggerData = model.get("load_measurements_trigger");
     if (triggerData && triggerData.measurements) {
       loadAndDisplayMeasurements(triggerData.measurements);
+      updateMeasurementsList();
     }
   });
+  model.on("change:focus_measurement_trigger", () => {
+    const triggerData = model.get("focus_measurement_trigger");
+    if (triggerData && typeof triggerData.index === "number") {
+      focusOnMeasurement(triggerData.index);
+    }
+  });
+  updateMeasurementsList();
   return {
     enableMeasurementMode,
     clearAllMeasurements,

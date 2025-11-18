@@ -66,6 +66,7 @@ class CesiumWidget(anywidget.AnyWidget):
     measurement_results = traitlets.List(trait=traitlets.Dict(), default_value=[], 
                                          help="List of measurement results").tag(sync=True)
     load_measurements_trigger = traitlets.Dict(default_value={}, help="Trigger to load measurements with visual display").tag(sync=True)
+    focus_measurement_trigger = traitlets.Dict(default_value={}, help="Trigger to focus on a specific measurement").tag(sync=True)
     
     def __init__(self, **kwargs):
         """Initialize the CesiumWidget.
@@ -210,6 +211,25 @@ class CesiumWidget(anywidget.AnyWidget):
         # Send measurements with a timestamp to trigger the change detection
         self.load_measurements_trigger = {
             "measurements": measurements,
+            "timestamp": time.time()
+        }
+    
+    def focus_on_measurement(self, index):
+        """Focus the camera on a specific measurement by index.
+        
+        Parameters
+        ----------
+        index : int
+            The index of the measurement to focus on (0-based)
+        
+        Examples
+        --------
+        >>> widget.focus_on_measurement(0)  # Focus on first measurement
+        >>> widget.focus_on_measurement(2)  # Focus on third measurement
+        """
+        import time
+        self.focus_measurement_trigger = {
+            "index": index,
             "timestamp": time.time()
         }
     
