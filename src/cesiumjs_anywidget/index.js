@@ -170,6 +170,7 @@ function initializeCameraSync(viewer, model) {
 function initializeMeasurementTools(viewer, model, container) {
   const Cesium = window.Cesium;
   let measurementHandler = null;
+  let editHandler = null;
   let measurementState = {
     mode: null,
     points: [],
@@ -179,6 +180,15 @@ function initializeMeasurementTools(viewer, model, container) {
     polyline: null,
     tempPolyline: null
   };
+  let editState = {
+    enabled: false,
+    selectedPoint: null,
+    selectedEntity: null,
+    dragging: false,
+    measurementIndex: null,
+    pointIndex: null
+  };
+  let completedMeasurements = [];
   const toolbarDiv = document.createElement("div");
   toolbarDiv.style.cssText = `
     position: absolute;
@@ -256,6 +266,50 @@ function initializeMeasurementTools(viewer, model, container) {
   toolbarDiv.appendChild(heightBtn);
   toolbarDiv.appendChild(areaBtn);
   toolbarDiv.appendChild(clearBtn);
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "\u270F\uFE0F Edit Points";
+  editBtn.style.cssText = `
+    padding: 8px 12px;
+    background: #9b59b6;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s;
+  `;
+  editBtn.onmouseover = () => {
+    editBtn.style.background = "#8e44ad";
+  };
+  editBtn.onmouseout = () => {
+    editBtn.style.background = editState.enabled ? "#e74c3c" : "#9b59b6";
+  };
+  editBtn.onclick = () => {
+    editState.enabled = !editState.enabled;
+    editBtn.style.background = editState.enabled ? "#e74c3c" : "#9b59b6";
+    if (editState.enabled) {
+      enableEditMode();
+    } else {
+      disableEditMode();
+    }
+  };
+  toolbarDiv.appendChild(editBtn);
+  const editorPanel = document.createElement("div");
+  editorPanel.style.cssText = `
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(42, 42, 42, 0.95);
+    padding: 15px;
+    border-radius: 5px;
+    z-index: 1000;
+    display: none;
+    color: white;
+    font-family: sans-serif;
+    font-size: 12px;
+    min-width: 250px;
+  `;
+  container.appendChild(editorPanel);
   function getPosition(screenPosition) {
     const pickedObject = viewer.scene.pick(screenPosition);
     if (viewer.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
@@ -343,6 +397,287 @@ function initializeMeasurementTools(viewer, model, container) {
     }
     measurementState.points = [];
     measurementState.tempPoint = null;
+  }
+  function enableEditMode() {
+    if (measurementState.mode) {
+      model.set("measurement_mode", "");
+      model.save_changes();
+    }
+    measurementState.entities.forEach((entity) => {
+      if (entity.point) {
+        entity.point.pixelSize = 12;
+        entity.point.outlineWidth = 3;
+      }
+    });
+    editHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    editHandler.setInputAction((click) => {
+      const pickedObject = viewer.scene.pick(click.position);
+      if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.point) {
+        selectPoint(pickedObject.id, click.position);
+      } else {
+        deselectPoint();
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    editHandler.setInputAction((movement) => {
+      if (editState.dragging && editState.selectedEntity) {
+        const position = getPosition(movement.endPosition);
+        if (position) {
+          updatePointPosition(position);
+        }
+      }
+    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+    editHandler.setInputAction(() => {
+      if (editState.selectedEntity) {
+        editState.dragging = true;
+        viewer.scene.screenSpaceCameraController.enableRotate = false;
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+    editHandler.setInputAction(() => {
+      if (editState.dragging) {
+        editState.dragging = false;
+        viewer.scene.screenSpaceCameraController.enableRotate = true;
+        finalizeMeasurementUpdate();
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_UP);
+  }
+  function disableEditMode() {
+    if (editHandler) {
+      editHandler.destroy();
+      editHandler = null;
+    }
+    deselectPoint();
+    measurementState.entities.forEach((entity) => {
+      if (entity.point) {
+        entity.point.pixelSize = 10;
+        entity.point.outlineWidth = 2;
+      }
+    });
+    viewer.scene.screenSpaceCameraController.enableRotate = true;
+  }
+  function selectPoint(entity, screenPosition) {
+    const results = model.get("measurement_results") || [];
+    let measurementIndex = -1;
+    let pointIndex = -1;
+    for (let i = 0; i < measurementState.entities.length; i++) {
+      if (measurementState.entities[i] === entity) {
+        let entityCount = 0;
+        for (let m = 0; m < results.length; m++) {
+          const measurement = results[m];
+          const numPoints = measurement.points.length;
+          if (i < entityCount + numPoints) {
+            measurementIndex = m;
+            pointIndex = i - entityCount;
+            break;
+          }
+          entityCount += numPoints;
+        }
+        break;
+      }
+    }
+    if (measurementIndex === -1)
+      return;
+    editState.selectedEntity = entity;
+    editState.measurementIndex = measurementIndex;
+    editState.pointIndex = pointIndex;
+    editState.selectedPoint = entity.position.getValue(Cesium.JulianDate.now());
+    entity.point.pixelSize = 15;
+    entity.point.outlineWidth = 4;
+    entity.point.outlineColor = Cesium.Color.YELLOW;
+    showCoordinateEditor(results[measurementIndex], pointIndex);
+  }
+  function deselectPoint() {
+    if (editState.selectedEntity && editState.selectedEntity.point) {
+      editState.selectedEntity.point.pixelSize = 12;
+      editState.selectedEntity.point.outlineWidth = 3;
+      editState.selectedEntity.point.outlineColor = Cesium.Color.WHITE;
+    }
+    editState.selectedEntity = null;
+    editState.selectedPoint = null;
+    editState.measurementIndex = null;
+    editState.pointIndex = null;
+    editState.dragging = false;
+    editorPanel.style.display = "none";
+  }
+  function showCoordinateEditor(measurement, pointIndex) {
+    const point = measurement.points[pointIndex];
+    editorPanel.innerHTML = `
+      <div style="margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 5px;">
+        Edit Point ${pointIndex + 1} (${measurement.type})
+      </div>
+      <div style="margin-bottom: 8px;">
+        <label style="display: block; margin-bottom: 3px;">Longitude (\xB0):</label>
+        <input type="number" id="edit-lon" value="${point.lon.toFixed(6)}" step="0.000001" 
+               style="width: 100%; padding: 5px; border-radius: 3px; border: 1px solid #555; background: #2c2c2c; color: white;">
+      </div>
+      <div style="margin-bottom: 8px;">
+        <label style="display: block; margin-bottom: 3px;">Latitude (\xB0):</label>
+        <input type="number" id="edit-lat" value="${point.lat.toFixed(6)}" step="0.000001"
+               style="width: 100%; padding: 5px; border-radius: 3px; border: 1px solid #555; background: #2c2c2c; color: white;">
+      </div>
+      <div style="margin-bottom: 10px;">
+        <label style="display: block; margin-bottom: 3px;">Altitude (m):</label>
+        <input type="number" id="edit-alt" value="${point.alt.toFixed(2)}" step="1"
+               style="width: 100%; padding: 5px; border-radius: 3px; border: 1px solid #555; background: #2c2c2c; color: white;">
+      </div>
+      <button id="apply-coords" style="width: 100%; padding: 8px; background: #27ae60; color: white; border: none; border-radius: 3px; cursor: pointer; margin-bottom: 5px;">
+        Apply
+      </button>
+      <button id="close-editor" style="width: 100%; padding: 8px; background: #95a5a6; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        Close
+      </button>
+    `;
+    editorPanel.style.display = "block";
+    document.getElementById("apply-coords").onclick = () => {
+      const lon = parseFloat(document.getElementById("edit-lon").value);
+      const lat = parseFloat(document.getElementById("edit-lat").value);
+      const alt = parseFloat(document.getElementById("edit-alt").value);
+      const newPosition = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
+      updatePointPosition(newPosition);
+      finalizeMeasurementUpdate();
+    };
+    document.getElementById("close-editor").onclick = () => {
+      deselectPoint();
+    };
+    ["edit-lon", "edit-lat", "edit-alt"].forEach((id) => {
+      document.getElementById(id).onkeypress = (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("apply-coords").click();
+        }
+      };
+    });
+  }
+  function updatePointPosition(newPosition) {
+    if (!editState.selectedEntity)
+      return;
+    editState.selectedEntity.position = newPosition;
+    editState.selectedPoint = newPosition;
+    updateMeasurementVisuals();
+  }
+  function updateMeasurementVisuals() {
+    const results = model.get("measurement_results") || [];
+    if (editState.measurementIndex === null)
+      return;
+    const measurement = results[editState.measurementIndex];
+    let entityStartIndex = 0;
+    for (let i = 0; i < editState.measurementIndex; i++) {
+      entityStartIndex += results[i].points.length;
+    }
+    const positions = [];
+    for (let i = 0; i < measurement.points.length; i++) {
+      const entity = measurementState.entities[entityStartIndex + i];
+      if (entity && entity.position) {
+        positions.push(entity.position.getValue(Cesium.JulianDate.now()));
+      }
+    }
+    const polylineStartIndex = editState.measurementIndex;
+    if (measurementState.polylines[polylineStartIndex]) {
+      const oldEntity = measurementState.polylines[polylineStartIndex];
+      if (measurement.type === "area" && oldEntity.polygon) {
+        viewer.entities.remove(oldEntity);
+        const newPolygon = viewer.entities.add({
+          polygon: {
+            hierarchy: new Cesium.PolygonHierarchy(positions),
+            material: Cesium.Color.ORANGE.withAlpha(0.3),
+            outline: true,
+            outlineColor: Cesium.Color.ORANGE,
+            outlineWidth: 2
+          }
+        });
+        measurementState.polylines[polylineStartIndex] = newPolygon;
+      } else if (oldEntity.polyline) {
+        if (measurement.type === "height") {
+          const carto0 = Cesium.Cartographic.fromCartesian(positions[0]);
+          const carto1 = Cesium.Cartographic.fromCartesian(positions[1]);
+          oldEntity.polyline.positions = [
+            positions[0],
+            Cesium.Cartesian3.fromRadians(carto1.longitude, carto1.latitude, carto0.height),
+            positions[1]
+          ];
+        } else {
+          oldEntity.polyline.positions = positions;
+        }
+      }
+    }
+    updateMeasurementLabels(measurement.type, positions);
+  }
+  function updateMeasurementLabels(type, positions) {
+    const labelStartIndex = editState.measurementIndex;
+    if (type === "distance") {
+      const distance = Cesium.Cartesian3.distance(positions[0], positions[1]);
+      const midpoint = Cesium.Cartesian3.midpoint(positions[0], positions[1], new Cesium.Cartesian3());
+      const distanceText = distance >= 1e3 ? `${(distance / 1e3).toFixed(2)} km` : `${distance.toFixed(2)} m`;
+      if (measurementState.labels[labelStartIndex]) {
+        measurementState.labels[labelStartIndex].position = midpoint;
+        measurementState.labels[labelStartIndex].label.text = distanceText;
+      }
+    } else if (type === "height") {
+      const carto0 = Cesium.Cartographic.fromCartesian(positions[0]);
+      const carto1 = Cesium.Cartographic.fromCartesian(positions[1]);
+      const verticalDistance = Math.abs(carto1.height - carto0.height);
+      const midHeight = (carto0.height + carto1.height) / 2;
+      const labelPos = Cesium.Cartesian3.fromRadians(carto1.longitude, carto1.latitude, midHeight);
+      const heightText = verticalDistance >= 1e3 ? `${(verticalDistance / 1e3).toFixed(2)} km` : `${verticalDistance.toFixed(2)} m`;
+      if (measurementState.labels[labelStartIndex]) {
+        measurementState.labels[labelStartIndex].position = labelPos;
+        measurementState.labels[labelStartIndex].label.text = heightText;
+      }
+    }
+  }
+  function finalizeMeasurementUpdate() {
+    if (editState.measurementIndex === null || editState.pointIndex === null)
+      return;
+    const results = model.get("measurement_results") || [];
+    const measurement = results[editState.measurementIndex];
+    const cartographic = Cesium.Cartographic.fromCartesian(editState.selectedPoint);
+    measurement.points[editState.pointIndex] = {
+      lat: Cesium.Math.toDegrees(cartographic.latitude),
+      lon: Cesium.Math.toDegrees(cartographic.longitude),
+      alt: cartographic.height
+    };
+    let entityStartIndex = 0;
+    for (let i = 0; i < editState.measurementIndex; i++) {
+      entityStartIndex += results[i].points.length;
+    }
+    const positions = [];
+    for (let i = 0; i < measurement.points.length; i++) {
+      const entity = measurementState.entities[entityStartIndex + i];
+      if (entity && entity.position) {
+        positions.push(entity.position.getValue(Cesium.JulianDate.now()));
+      }
+    }
+    if (measurement.type === "distance") {
+      measurement.value = Cesium.Cartesian3.distance(positions[0], positions[1]);
+    } else if (measurement.type === "height") {
+      const carto0 = Cesium.Cartographic.fromCartesian(positions[0]);
+      const carto1 = Cesium.Cartographic.fromCartesian(positions[1]);
+      measurement.value = Math.abs(carto1.height - carto0.height);
+    } else if (measurement.type === "multi-distance") {
+      let totalDistance = 0;
+      for (let i = 0; i < positions.length - 1; i++) {
+        totalDistance += Cesium.Cartesian3.distance(positions[i], positions[i + 1]);
+      }
+      measurement.value = totalDistance;
+    } else if (measurement.type === "area") {
+      let area = 0;
+      for (let i = 0; i < positions.length; i++) {
+        const p1 = Cesium.Cartographic.fromCartesian(positions[i]);
+        const p2 = Cesium.Cartographic.fromCartesian(positions[(i + 1) % positions.length]);
+        const x1 = p1.longitude * Cesium.Math.DEGREES_PER_RADIAN;
+        const y1 = p1.latitude * Cesium.Math.DEGREES_PER_RADIAN;
+        const x2 = p2.longitude * Cesium.Math.DEGREES_PER_RADIAN;
+        const y2 = p2.latitude * Cesium.Math.DEGREES_PER_RADIAN;
+        area += x1 * y2 - x2 * y1;
+      }
+      area = Math.abs(area / 2);
+      const metersPerDegree = 111320;
+      measurement.value = area * metersPerDegree * metersPerDegree;
+    }
+    const newResults = [...results];
+    model.set("measurement_results", newResults);
+    model.save_changes();
+    if (editorPanel.style.display !== "none") {
+      showCoordinateEditor(measurement, editState.pointIndex);
+    }
   }
   function handleDistanceClick(click) {
     const position = getPosition(click.position);
