@@ -65,6 +65,7 @@ class CesiumWidget(anywidget.AnyWidget):
     measurement_mode = traitlets.Unicode("", help="Active measurement mode: 'distance', 'multi-distance', 'height', or '' for none").tag(sync=True)
     measurement_results = traitlets.List(trait=traitlets.Dict(), default_value=[], 
                                          help="List of measurement results").tag(sync=True)
+    load_measurements_trigger = traitlets.Dict(default_value={}, help="Trigger to load measurements with visual display").tag(sync=True)
     
     def __init__(self, **kwargs):
         """Initialize the CesiumWidget.
@@ -181,6 +182,36 @@ class CesiumWidget(anywidget.AnyWidget):
     def clear_measurements(self):
         """Clear all measurements from the viewer."""
         self.measurement_results = []
+    
+    def load_measurements(self, measurements):
+        """Load and display measurements on the map.
+        
+        Parameters
+        ----------
+        measurements : list of dict
+            List of measurements to load and display. Each measurement should contain:
+            - type: str - 'distance', 'multi-distance', 'height', or 'area'
+            - points: list of [lon, lat, alt] coordinates (GeoJSON style)
+            
+        Examples
+        --------
+        >>> widget.load_measurements([
+        ...     {
+        ...         "type": "distance",
+        ...         "points": [[2.3522, 48.8566, 100], [2.3550, 48.8600, 105]]
+        ...     },
+        ...     {
+        ...         "type": "area",
+        ...         "points": [[2.3522, 48.8566, 100], [2.3550, 48.8600, 105], [2.3500, 48.8620, 98]]
+        ...     }
+        ... ])
+        """
+        import time
+        # Send measurements with a timestamp to trigger the change detection
+        self.load_measurements_trigger = {
+            "measurements": measurements,
+            "timestamp": time.time()
+        }
     
     def debug_info(self):
         """Print debug information about the widget.
