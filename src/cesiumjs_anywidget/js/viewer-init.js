@@ -16,7 +16,7 @@ export async function loadCesiumJS() {
 
   const script = document.createElement('script');
   script.src = 'https://cesium.com/downloads/cesiumjs/releases/1.135/Build/Cesium/Cesium.js';
-  
+
   await new Promise((resolve, reject) => {
     script.onload = resolve;
     script.onerror = reject;
@@ -36,7 +36,7 @@ export function createLoadingIndicator(container, hasToken) {
   const loadingDiv = document.createElement("div");
   loadingDiv.textContent = "Loading CesiumJS...";
   loadingDiv.style.cssText = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; color: #fff; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 5px;";
-  
+
   if (!hasToken) {
     loadingDiv.innerHTML = `
       <div style="text-align: center;">
@@ -48,7 +48,7 @@ export function createLoadingIndicator(container, hasToken) {
       </div>
     `;
   }
-  
+
   container.appendChild(loadingDiv);
   return loadingDiv;
 }
@@ -74,14 +74,14 @@ export function createViewer(container, model, Cesium) {
     shadows: false,
     shouldAnimate: false,
   };
-  
+
   if (model.get("enable_terrain")) {
     viewerOptions.terrain = Cesium.Terrain.fromWorldTerrain();
   }
-  
+
   const viewer = new Cesium.Viewer(container, viewerOptions);
   viewer.scene.globe.enableLighting = model.get("enable_lighting");
-  
+
   return viewer;
 }
 
@@ -136,7 +136,7 @@ export function setupGeoJSONLoader(viewer, model, Cesium) {
   model.on("change:geojson_data", async () => {
     if (!viewer) return;
     const geojsonData = model.get("geojson_data");
-    
+
     if (geojsonDataSource) {
       viewer.dataSources.remove(geojsonDataSource);
       geojsonDataSource = null;
@@ -178,7 +178,7 @@ export function setupCZMLLoader(viewer, model, Cesium) {
   model.on("change:czml_data", async () => {
     if (!viewer) return;
     const czmlData = model.get("czml_data");
-    
+
     if (czmlDataSource) {
       viewer.dataSources.remove(czmlDataSource);
       czmlDataSource = null;

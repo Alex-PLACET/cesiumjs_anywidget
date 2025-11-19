@@ -14,7 +14,7 @@
  */
 export function initializeMeasurementTools(viewer, model, container) {
   const Cesium = window.Cesium;
-  
+
   let measurementHandler = null;
   let editHandler = null;
   let measurementState = {
@@ -26,7 +26,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     polyline: null,
     tempPolyline: null,
   };
-  
+
   // Edit state for point manipulation
   let editState = {
     enabled: false,
@@ -36,12 +36,12 @@ export function initializeMeasurementTools(viewer, model, container) {
     measurementIndex: null,
     pointIndex: null,
   };
-  
+
   // Store all completed measurements with their visual elements
   let completedMeasurements = [];
 
   // ============= UI CREATION =============
-  
+
   const toolbarDiv = document.createElement("div");
   toolbarDiv.style.cssText = `
     position: absolute;
@@ -71,7 +71,7 @@ export function initializeMeasurementTools(viewer, model, container) {
       transition: background 0.2s;
     `;
     btn.onmouseover = () => { btn.style.background = '#2980b9'; };
-    btn.onmouseout = () => { 
+    btn.onmouseout = () => {
       btn.style.background = measurementState.mode === mode ? '#e74c3c' : '#3498db';
     };
     btn.onclick = () => {
@@ -90,7 +90,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   const multiDistanceBtn = createMeasurementButton("📐 Multi Distance", "multi-distance");
   const heightBtn = createMeasurementButton("📊 Height", "height");
   const areaBtn = createMeasurementButton("⬛ Area", "area");
-  
+
   const clearBtn = document.createElement("button");
   clearBtn.textContent = "🗑️ Clear";
   clearBtn.style.cssText = `
@@ -117,7 +117,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   toolbarDiv.appendChild(heightBtn);
   toolbarDiv.appendChild(areaBtn);
   toolbarDiv.appendChild(clearBtn);
-  
+
   // Edit mode button
   const editBtn = document.createElement("button");
   editBtn.textContent = "✏️ Edit Points";
@@ -143,7 +143,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     }
   };
   toolbarDiv.appendChild(editBtn);
-  
+
   // Coordinate editor panel
   const editorPanel = document.createElement("div");
   editorPanel.style.cssText = `
@@ -161,7 +161,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     min-width: 250px;
   `;
   container.appendChild(editorPanel);
-  
+
   // Measurements list panel
   const measurementsListPanel = document.createElement("div");
   measurementsListPanel.style.cssText = `
@@ -188,7 +188,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   container.appendChild(measurementsListPanel);
 
   // ============= HELPER FUNCTIONS =============
-  
+
   function getPosition(screenPosition) {
     const pickedObject = viewer.scene.pick(screenPosition);
     if (viewer.scene.pickPositionSupported && Cesium.defined(pickedObject)) {
@@ -286,14 +286,14 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   // ============= EDIT MODE FUNCTIONS =============
-  
+
   function enableEditMode() {
     // Disable measurement mode
     if (measurementState.mode) {
       model.set("measurement_mode", "");
       model.save_changes();
     }
-    
+
     // Highlight all measurement points to make them selectable
     measurementState.entities.forEach(entity => {
       if (entity.point) {
@@ -301,10 +301,10 @@ export function initializeMeasurementTools(viewer, model, container) {
         entity.point.outlineWidth = 3;
       }
     });
-    
+
     // Set up edit handlers
     editHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    
+
     editHandler.setInputAction((click) => {
       const pickedObject = viewer.scene.pick(click.position);
       if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.point) {
@@ -313,7 +313,7 @@ export function initializeMeasurementTools(viewer, model, container) {
         deselectPoint();
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-    
+
     editHandler.setInputAction((movement) => {
       if (editState.dragging && editState.selectedEntity) {
         const position = getPosition(movement.endPosition);
@@ -322,14 +322,14 @@ export function initializeMeasurementTools(viewer, model, container) {
         }
       }
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-    
+
     editHandler.setInputAction(() => {
       if (editState.selectedEntity) {
         editState.dragging = true;
         viewer.scene.screenSpaceCameraController.enableRotate = false;
       }
     }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
-    
+
     editHandler.setInputAction(() => {
       if (editState.dragging) {
         editState.dragging = false;
@@ -338,15 +338,15 @@ export function initializeMeasurementTools(viewer, model, container) {
       }
     }, Cesium.ScreenSpaceEventType.LEFT_UP);
   }
-  
+
   function disableEditMode() {
     if (editHandler) {
       editHandler.destroy();
       editHandler = null;
     }
-    
+
     deselectPoint();
-    
+
     // Reset point sizes
     measurementState.entities.forEach(entity => {
       if (entity.point) {
@@ -354,16 +354,16 @@ export function initializeMeasurementTools(viewer, model, container) {
         entity.point.outlineWidth = 2;
       }
     });
-    
+
     viewer.scene.screenSpaceCameraController.enableRotate = true;
   }
-  
+
   function selectPoint(entity, screenPosition) {
     // Find which measurement and point this entity belongs to
     const results = model.get("measurement_results") || [];
     let measurementIndex = -1;
     let pointIndex = -1;
-    
+
     for (let i = 0; i < measurementState.entities.length; i++) {
       if (measurementState.entities[i] === entity) {
         // Determine which measurement this belongs to by counting entities
@@ -381,42 +381,42 @@ export function initializeMeasurementTools(viewer, model, container) {
         break;
       }
     }
-    
+
     if (measurementIndex === -1) return;
-    
+
     editState.selectedEntity = entity;
     editState.measurementIndex = measurementIndex;
     editState.pointIndex = pointIndex;
     editState.selectedPoint = entity.position.getValue(Cesium.JulianDate.now());
-    
+
     // Highlight selected point
     entity.point.pixelSize = 15;
     entity.point.outlineWidth = 4;
     entity.point.outlineColor = Cesium.Color.YELLOW;
-    
+
     // Show coordinate editor
     showCoordinateEditor(results[measurementIndex], pointIndex);
   }
-  
+
   function deselectPoint() {
     if (editState.selectedEntity && editState.selectedEntity.point) {
       editState.selectedEntity.point.pixelSize = 12;
       editState.selectedEntity.point.outlineWidth = 3;
       editState.selectedEntity.point.outlineColor = Cesium.Color.WHITE;
     }
-    
+
     editState.selectedEntity = null;
     editState.selectedPoint = null;
     editState.measurementIndex = null;
     editState.pointIndex = null;
     editState.dragging = false;
-    
+
     editorPanel.style.display = 'none';
   }
-  
+
   function showCoordinateEditor(measurement, pointIndex) {
     const point = measurement.points[pointIndex];
-    
+
     editorPanel.innerHTML = `
       <div style="margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 5px;">
         Edit Point ${pointIndex + 1} (${measurement.type})
@@ -443,24 +443,24 @@ export function initializeMeasurementTools(viewer, model, container) {
         Close
       </button>
     `;
-    
+
     editorPanel.style.display = 'block';
-    
+
     // Add event listeners
     document.getElementById('apply-coords').onclick = () => {
       const lon = parseFloat(document.getElementById('edit-lon').value);
       const lat = parseFloat(document.getElementById('edit-lat').value);
       const alt = parseFloat(document.getElementById('edit-alt').value);
-      
+
       const newPosition = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
       updatePointPosition(newPosition);
       finalizeMeasurementUpdate();
     };
-    
+
     document.getElementById('close-editor').onclick = () => {
       deselectPoint();
     };
-    
+
     // Update on Enter key
     ['edit-lon', 'edit-lat', 'edit-alt'].forEach(id => {
       document.getElementById(id).onkeypress = (e) => {
@@ -470,29 +470,29 @@ export function initializeMeasurementTools(viewer, model, container) {
       };
     });
   }
-  
+
   function updatePointPosition(newPosition) {
     if (!editState.selectedEntity) return;
-    
+
     editState.selectedEntity.position = newPosition;
     editState.selectedPoint = newPosition;
-    
+
     // Update visual elements (lines, polygons, labels)
     updateMeasurementVisuals();
   }
-  
+
   function updateMeasurementVisuals() {
     const results = model.get("measurement_results") || [];
     if (editState.measurementIndex === null) return;
-    
+
     const measurement = results[editState.measurementIndex];
-    
+
     // Collect all entity positions for this measurement
     let entityStartIndex = 0;
     for (let i = 0; i < editState.measurementIndex; i++) {
       entityStartIndex += results[i].points.length;
     }
-    
+
     const positions = [];
     for (let i = 0; i < measurement.points.length; i++) {
       const entity = measurementState.entities[entityStartIndex + i];
@@ -500,16 +500,16 @@ export function initializeMeasurementTools(viewer, model, container) {
         positions.push(entity.position.getValue(Cesium.JulianDate.now()));
       }
     }
-    
+
     // Find and update polylines/polygons for this measurement
     const polylineStartIndex = editState.measurementIndex;
     if (measurementState.polylines[polylineStartIndex]) {
       const oldEntity = measurementState.polylines[polylineStartIndex];
-      
+
       if (measurement.type === "area" && oldEntity.polygon) {
         // Remove old polygon and create new one with updated positions
         viewer.entities.remove(oldEntity);
-        
+
         const newPolygon = viewer.entities.add({
           polygon: {
             hierarchy: new Cesium.PolygonHierarchy(positions),
@@ -520,7 +520,7 @@ export function initializeMeasurementTools(viewer, model, container) {
           },
         });
         measurementState.polylines[polylineStartIndex] = newPolygon;
-        
+
       } else if (oldEntity.polyline) {
         if (measurement.type === "height") {
           // Height measurements have special L-shaped lines
@@ -536,21 +536,21 @@ export function initializeMeasurementTools(viewer, model, container) {
         }
       }
     }
-    
+
     // Update labels with recalculated measurements
     updateMeasurementLabels(measurement.type, positions);
   }
-  
+
   function updateMeasurementLabels(type, positions) {
     // Remove old labels for this measurement and recreate them
     // This is simplified - you might want to track label indices more carefully
     const labelStartIndex = editState.measurementIndex;
-    
+
     if (type === "distance") {
       const distance = Cesium.Cartesian3.distance(positions[0], positions[1]);
       const midpoint = Cesium.Cartesian3.midpoint(positions[0], positions[1], new Cesium.Cartesian3());
       const distanceText = distance >= 1000 ? `${(distance / 1000).toFixed(2)} km` : `${distance.toFixed(2)} m`;
-      
+
       // Update existing label
       if (measurementState.labels[labelStartIndex]) {
         measurementState.labels[labelStartIndex].position = midpoint;
@@ -563,7 +563,7 @@ export function initializeMeasurementTools(viewer, model, container) {
       const midHeight = (carto0.height + carto1.height) / 2;
       const labelPos = Cesium.Cartesian3.fromRadians(carto1.longitude, carto1.latitude, midHeight);
       const heightText = verticalDistance >= 1000 ? `${(verticalDistance / 1000).toFixed(2)} km` : `${verticalDistance.toFixed(2)} m`;
-      
+
       if (measurementState.labels[labelStartIndex]) {
         measurementState.labels[labelStartIndex].position = labelPos;
         measurementState.labels[labelStartIndex].label.text = heightText;
@@ -571,13 +571,13 @@ export function initializeMeasurementTools(viewer, model, container) {
     }
     // Note: multi-distance and area would need more complex label updates
   }
-  
+
   function finalizeMeasurementUpdate() {
     if (editState.measurementIndex === null || editState.pointIndex === null) return;
-    
+
     const results = model.get("measurement_results") || [];
     const measurement = results[editState.measurementIndex];
-    
+
     // Update the point coordinates
     const cartographic = Cesium.Cartographic.fromCartesian(editState.selectedPoint);
     measurement.points[editState.pointIndex] = {
@@ -585,13 +585,13 @@ export function initializeMeasurementTools(viewer, model, container) {
       lon: Cesium.Math.toDegrees(cartographic.longitude),
       alt: cartographic.height,
     };
-    
+
     // Recalculate measurement value
     let entityStartIndex = 0;
     for (let i = 0; i < editState.measurementIndex; i++) {
       entityStartIndex += results[i].points.length;
     }
-    
+
     const positions = [];
     for (let i = 0; i < measurement.points.length; i++) {
       const entity = measurementState.entities[entityStartIndex + i];
@@ -599,7 +599,7 @@ export function initializeMeasurementTools(viewer, model, container) {
         positions.push(entity.position.getValue(Cesium.JulianDate.now()));
       }
     }
-    
+
     if (measurement.type === "distance") {
       measurement.value = Cesium.Cartesian3.distance(positions[0], positions[1]);
     } else if (measurement.type === "height") {
@@ -622,40 +622,40 @@ export function initializeMeasurementTools(viewer, model, container) {
           arcType: Cesium.ArcType.GEODESIC
         })
       );
-      
+
       let area = 0;
       if (geometry) {
         const positionsArray = geometry.attributes.position.values;
         const indices = geometry.indices;
-        
+
         for (let i = 0; i < indices.length; i += 3) {
           const i0 = indices[i] * 3;
           const i1 = indices[i + 1] * 3;
           const i2 = indices[i + 2] * 3;
-          
+
           const v0 = new Cesium.Cartesian3(positionsArray[i0], positionsArray[i0 + 1], positionsArray[i0 + 2]);
           const v1 = new Cesium.Cartesian3(positionsArray[i1], positionsArray[i1 + 1], positionsArray[i1 + 2]);
           const v2 = new Cesium.Cartesian3(positionsArray[i2], positionsArray[i2 + 1], positionsArray[i2 + 2]);
-          
+
           const edge1 = Cesium.Cartesian3.subtract(v1, v0, new Cesium.Cartesian3());
           const edge2 = Cesium.Cartesian3.subtract(v2, v0, new Cesium.Cartesian3());
           const crossProduct = Cesium.Cartesian3.cross(edge1, edge2, new Cesium.Cartesian3());
           const triangleArea = Cesium.Cartesian3.magnitude(crossProduct) / 2.0;
-          
+
           area += triangleArea;
         }
       }
       measurement.value = area;
     }
-    
+
     // Sync back to Python
     const newResults = [...results];
     model.set("measurement_results", newResults);
     model.save_changes();
-    
+
     // Update the measurements list
     updateMeasurementsList();
-    
+
     // Update the coordinate editor if still open
     if (editorPanel.style.display !== 'none') {
       showCoordinateEditor(measurement, editState.pointIndex);
@@ -663,18 +663,18 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   // ============= MEASUREMENTS LIST FUNCTIONS =============
-  
+
   function updateMeasurementsList() {
     const results = model.get("measurement_results") || [];
     const listContent = document.getElementById("measurements-list-content");
-    
+
     if (results.length === 0) {
       listContent.innerHTML = '<div style="color: #888; font-style: italic;">No measurements yet</div>';
       return;
     }
-    
+
     listContent.innerHTML = '';
-    
+
     results.forEach((measurement, index) => {
       const measurementDiv = document.createElement("div");
       measurementDiv.style.cssText = `
@@ -692,7 +692,7 @@ export function initializeMeasurementTools(viewer, model, container) {
       measurementDiv.onmouseout = () => {
         measurementDiv.style.background = 'rgba(255, 255, 255, 0.05)';
       };
-      
+
       // Measurement name (editable)
       const name = measurement.name || `${getMeasurementTypeLabel(measurement.type)} ${index + 1}`;
       const nameDiv = document.createElement("div");
@@ -708,28 +708,28 @@ export function initializeMeasurementTools(viewer, model, container) {
         <button id="rename-${index}" style="padding: 2px 6px; background: #3498db; color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 10px;">✎</button>
       `;
       measurementDiv.appendChild(nameDiv);
-      
+
       // Measurement value
       const valueDiv = document.createElement("div");
       valueDiv.style.cssText = 'color: #aaa; font-size: 11px; margin-bottom: 3px;';
       valueDiv.textContent = formatMeasurementValue(measurement);
       measurementDiv.appendChild(valueDiv);
-      
+
       // Number of points
       const pointsDiv = document.createElement("div");
       pointsDiv.style.cssText = 'color: #888; font-size: 10px;';
       pointsDiv.textContent = `${measurement.points.length} point${measurement.points.length > 1 ? 's' : ''}`;
       measurementDiv.appendChild(pointsDiv);
-      
+
       // Click to focus
       measurementDiv.onclick = (e) => {
         if (!e.target.id.startsWith('rename-')) {
           focusOnMeasurement(index);
         }
       };
-      
+
       listContent.appendChild(measurementDiv);
-      
+
       // Add rename functionality
       document.getElementById(`rename-${index}`).onclick = (e) => {
         e.stopPropagation();
@@ -737,7 +737,7 @@ export function initializeMeasurementTools(viewer, model, container) {
       };
     });
   }
-  
+
   function getMeasurementColor(type) {
     const colors = {
       'distance': '#e74c3c',
@@ -747,7 +747,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     };
     return colors[type] || '#95a5a6';
   }
-  
+
   function getMeasurementTypeLabel(type) {
     const labels = {
       'distance': 'Distance',
@@ -757,18 +757,18 @@ export function initializeMeasurementTools(viewer, model, container) {
     };
     return labels[type] || type;
   }
-  
+
   function formatMeasurementValue(measurement) {
     const value = measurement.value;
     const type = measurement.type;
-    
+
     if (type === 'area') {
       return value >= 1000000 ? `${(value / 1000000).toFixed(2)} km²` : `${value.toFixed(2)} m²`;
     } else {
       return value >= 1000 ? `${(value / 1000).toFixed(2)} km` : `${value.toFixed(2)} m`;
     }
   }
-  
+
   function renameMeasurement(index, currentName) {
     const newName = prompt('Enter new name for measurement:', currentName);
     if (newName && newName.trim()) {
@@ -780,21 +780,21 @@ export function initializeMeasurementTools(viewer, model, container) {
       updateMeasurementsList();
     }
   }
-  
+
   function focusOnMeasurement(index) {
     const results = model.get("measurement_results") || [];
     if (index < 0 || index >= results.length) return;
-    
+
     const measurement = results[index];
     if (!measurement.points || measurement.points.length === 0) return;
-    
+
     // Calculate bounding sphere for all points
-    const positions = measurement.points.map(p => 
+    const positions = measurement.points.map(p =>
       Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt || 0)
     );
-    
+
     const boundingSphere = Cesium.BoundingSphere.fromPoints(positions);
-    
+
     // Fly to the measurement with padding
     viewer.camera.flyToBoundingSphere(boundingSphere, {
       duration: 1.5,
@@ -807,7 +807,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   // ============= MEASUREMENT HANDLERS =============
-  
+
   function handleDistanceClick(click) {
     const position = getPosition(click.position);
     if (!position) return;
@@ -815,7 +815,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     if (measurementState.points.length === 0) {
       measurementState.points.push(position);
       addMarker(position);
-      
+
       measurementState.tempPolyline = viewer.entities.add({
         polyline: {
           positions: new Cesium.CallbackProperty(() => {
@@ -832,7 +832,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     } else if (measurementState.points.length === 1) {
       measurementState.points.push(position);
       addMarker(position);
-      
+
       const distance = calculateDistance(measurementState.points[0], measurementState.points[1]);
       const midpoint = getMidpoint(measurementState.points[0], measurementState.points[1]);
       addLabel(midpoint, `${distance.toFixed(2)} m`);
@@ -988,7 +988,7 @@ export function initializeMeasurementTools(viewer, model, container) {
 
     if (measurementState.points.length >= 3) {
       const positions = measurementState.points;
-      
+
       // Use Cesium's PolygonGeometry to calculate geodesic area on the ellipsoid
       const polygonHierarchy = new Cesium.PolygonHierarchy(positions);
       const geometry = Cesium.PolygonGeometry.createGeometry(
@@ -998,33 +998,33 @@ export function initializeMeasurementTools(viewer, model, container) {
           arcType: Cesium.ArcType.GEODESIC
         })
       );
-      
+
       // Calculate area using triangulated geometry
       let area = 0;
       if (geometry) {
         const positionsArray = geometry.attributes.position.values;
         const indices = geometry.indices;
-        
+
         // Sum up the area of all triangles
         for (let i = 0; i < indices.length; i += 3) {
           const i0 = indices[i] * 3;
           const i1 = indices[i + 1] * 3;
           const i2 = indices[i + 2] * 3;
-          
+
           const v0 = new Cesium.Cartesian3(positionsArray[i0], positionsArray[i0 + 1], positionsArray[i0 + 2]);
           const v1 = new Cesium.Cartesian3(positionsArray[i1], positionsArray[i1 + 1], positionsArray[i1 + 2]);
           const v2 = new Cesium.Cartesian3(positionsArray[i2], positionsArray[i2 + 1], positionsArray[i2 + 2]);
-          
+
           // Calculate triangle area using cross product
           const edge1 = Cesium.Cartesian3.subtract(v1, v0, new Cesium.Cartesian3());
           const edge2 = Cesium.Cartesian3.subtract(v2, v0, new Cesium.Cartesian3());
           const crossProduct = Cesium.Cartesian3.cross(edge1, edge2, new Cesium.Cartesian3());
           const triangleArea = Cesium.Cartesian3.magnitude(crossProduct) / 2.0;
-          
+
           area += triangleArea;
         }
       }
-      
+
       // Calculate centroid in geographic coordinates for better accuracy
       let centroidLon = 0, centroidLat = 0;
       positions.forEach(pos => {
@@ -1034,17 +1034,17 @@ export function initializeMeasurementTools(viewer, model, container) {
       });
       centroidLon /= positions.length;
       centroidLat /= positions.length;
-      
-      const areaText = area >= 1000000 
+
+      const areaText = area >= 1000000
         ? `${(area / 1000000).toFixed(2)} km²`
         : `${area.toFixed(2)} m²`;
-      
+
       const oldLabel = measurementState.labels.find(l => l.label && l.label.text._value.includes('m²') || l.label.text._value.includes('km²'));
       if (oldLabel) {
         viewer.entities.remove(oldLabel);
         measurementState.labels = measurementState.labels.filter(l => l !== oldLabel);
       }
-      
+
       // Sample terrain height at centroid and place label at ground level
       const centroidCarto = new Cesium.Cartographic(centroidLon, centroidLat);
       const promise = Cesium.sampleTerrainMostDetailed(viewer.terrainProvider, [centroidCarto]);
@@ -1052,7 +1052,7 @@ export function initializeMeasurementTools(viewer, model, container) {
         const centroid = Cesium.Cartographic.toCartesian(centroidCarto);
         addLabel(centroid, areaText);
       });
-      
+
       const results = model.get("measurement_results") || [];
       const lastResult = results[results.length - 1];
       let newResults;
@@ -1088,7 +1088,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   // ============= MODE MANAGEMENT =============
-  
+
   function enableMeasurementMode(mode) {
     if (measurementHandler) {
       measurementHandler.destroy();
@@ -1106,7 +1106,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     if (!mode) return;
 
     measurementHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    
+
     if (mode === "distance") {
       measurementHandler.setInputAction(handleDistanceClick, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       measurementHandler.setInputAction(handleMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
@@ -1148,20 +1148,20 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   // ============= LOAD MEASUREMENTS =============
-  
+
   function loadAndDisplayMeasurements(measurements) {
     if (!Array.isArray(measurements)) return;
-    
+
     measurements.forEach(measurement => {
       const { type, points } = measurement;
       if (!type || !Array.isArray(points) || points.length < 2) return;
-      
+
       // Convert GeoJSON [lon, lat, alt] to Cartesian3
       const positions = points.map(point => {
         const [lon, lat, alt] = point;
         return Cesium.Cartesian3.fromDegrees(lon, lat, alt || 0);
       });
-      
+
       if (type === "distance" && positions.length === 2) {
         displayDistance(positions);
       } else if (type === "multi-distance" && positions.length >= 2) {
@@ -1173,10 +1173,10 @@ export function initializeMeasurementTools(viewer, model, container) {
       }
     });
   }
-  
+
   function displayDistance(positions) {
     positions.forEach(pos => addMarker(pos, Cesium.Color.RED));
-    
+
     const line = viewer.entities.add({
       polyline: {
         positions: positions,
@@ -1185,16 +1185,16 @@ export function initializeMeasurementTools(viewer, model, container) {
       },
     });
     measurementState.polylines.push(line);
-    
+
     const distance = Cesium.Cartesian3.distance(positions[0], positions[1]);
     const midpoint = Cesium.Cartesian3.midpoint(positions[0], positions[1], new Cesium.Cartesian3());
     const distanceText = distance >= 1000 ? `${(distance / 1000).toFixed(2)} km` : `${distance.toFixed(2)} m`;
     addLabel(midpoint, distanceText);
   }
-  
+
   function displayMultiDistance(positions) {
     positions.forEach(pos => addMarker(pos, Cesium.Color.BLUE));
-    
+
     const line = viewer.entities.add({
       polyline: {
         positions: positions,
@@ -1203,29 +1203,29 @@ export function initializeMeasurementTools(viewer, model, container) {
       },
     });
     measurementState.polylines.push(line);
-    
+
     let totalDistance = 0;
     for (let i = 0; i < positions.length - 1; i++) {
       const segmentDistance = Cesium.Cartesian3.distance(positions[i], positions[i + 1]);
       totalDistance += segmentDistance;
-      
+
       const midpoint = Cesium.Cartesian3.midpoint(positions[i], positions[i + 1], new Cesium.Cartesian3());
       const segmentText = segmentDistance >= 1000 ? `${(segmentDistance / 1000).toFixed(2)} km` : `${segmentDistance.toFixed(2)} m`;
       addLabel(midpoint, segmentText);
     }
-    
+
     const lastPos = positions[positions.length - 1];
     const totalText = totalDistance >= 1000 ? `Total: ${(totalDistance / 1000).toFixed(2)} km` : `Total: ${totalDistance.toFixed(2)} m`;
     addLabel(lastPos, totalText);
   }
-  
+
   function displayHeight(positions) {
     positions.forEach(pos => addMarker(pos, Cesium.Color.GREEN));
-    
+
     const carto0 = Cesium.Cartographic.fromCartesian(positions[0]);
     const carto1 = Cesium.Cartographic.fromCartesian(positions[1]);
     const verticalDistance = Math.abs(carto1.height - carto0.height);
-    
+
     const line = viewer.entities.add({
       polyline: {
         positions: [
@@ -1238,16 +1238,16 @@ export function initializeMeasurementTools(viewer, model, container) {
       },
     });
     measurementState.polylines.push(line);
-    
+
     const midHeight = (carto0.height + carto1.height) / 2;
     const labelPos = Cesium.Cartesian3.fromRadians(carto1.longitude, carto1.latitude, midHeight);
     const heightText = verticalDistance >= 1000 ? `${(verticalDistance / 1000).toFixed(2)} km` : `${verticalDistance.toFixed(2)} m`;
     addLabel(labelPos, heightText);
   }
-  
+
   function displayArea(positions) {
     positions.forEach(pos => addMarker(pos, Cesium.Color.ORANGE));
-    
+
     const polygon = viewer.entities.add({
       polygon: {
         hierarchy: new Cesium.PolygonHierarchy(positions),
@@ -1258,7 +1258,7 @@ export function initializeMeasurementTools(viewer, model, container) {
       },
     });
     measurementState.polylines.push(polygon);
-    
+
     // Calculate area using Cesium's PolygonGeometry
     const polygonHierarchy = new Cesium.PolygonHierarchy(positions);
     const geometry = Cesium.PolygonGeometry.createGeometry(
@@ -1268,30 +1268,30 @@ export function initializeMeasurementTools(viewer, model, container) {
         arcType: Cesium.ArcType.GEODESIC
       })
     );
-    
+
     let area = 0;
     if (geometry) {
       const positionsArray = geometry.attributes.position.values;
       const indices = geometry.indices;
-      
+
       for (let i = 0; i < indices.length; i += 3) {
         const i0 = indices[i] * 3;
         const i1 = indices[i + 1] * 3;
         const i2 = indices[i + 2] * 3;
-        
+
         const v0 = new Cesium.Cartesian3(positionsArray[i0], positionsArray[i0 + 1], positionsArray[i0 + 2]);
         const v1 = new Cesium.Cartesian3(positionsArray[i1], positionsArray[i1 + 1], positionsArray[i1 + 2]);
         const v2 = new Cesium.Cartesian3(positionsArray[i2], positionsArray[i2 + 1], positionsArray[i2 + 2]);
-        
+
         const edge1 = Cesium.Cartesian3.subtract(v1, v0, new Cesium.Cartesian3());
         const edge2 = Cesium.Cartesian3.subtract(v2, v0, new Cesium.Cartesian3());
         const crossProduct = Cesium.Cartesian3.cross(edge1, edge2, new Cesium.Cartesian3());
         const triangleArea = Cesium.Cartesian3.magnitude(crossProduct) / 2.0;
-        
+
         area += triangleArea;
       }
     }
-    
+
     // Calculate centroid and place label at ground level
     let centroidLon = 0, centroidLat = 0;
     positions.forEach(pos => {
@@ -1301,9 +1301,9 @@ export function initializeMeasurementTools(viewer, model, container) {
     });
     centroidLon /= positions.length;
     centroidLat /= positions.length;
-    
+
     const areaText = area >= 1000000 ? `${(area / 1000000).toFixed(2)} km²` : `${area.toFixed(2)} m²`;
-    
+
     const centroidCarto = new Cesium.Cartographic(centroidLon, centroidLat);
     const promise = Cesium.sampleTerrainMostDetailed(viewer.terrainProvider, [centroidCarto]);
     promise.then(() => {
@@ -1313,7 +1313,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   // ============= MODEL LISTENERS =============
-  
+
   model.on("change:measurement_mode", () => {
     const mode = model.get("measurement_mode");
     enableMeasurementMode(mode);
@@ -1326,7 +1326,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     }
     updateMeasurementsList();
   });
-  
+
   model.on("change:load_measurements_trigger", () => {
     const triggerData = model.get("load_measurements_trigger");
     if (triggerData && triggerData.measurements) {
@@ -1334,40 +1334,40 @@ export function initializeMeasurementTools(viewer, model, container) {
       updateMeasurementsList();
     }
   });
-  
+
   model.on("change:focus_measurement_trigger", () => {
     const triggerData = model.get("focus_measurement_trigger");
     if (triggerData && typeof triggerData.index === 'number') {
       focusOnMeasurement(triggerData.index);
     }
   });
-  
+
   model.on("change:show_measurement_tools", () => {
     const show = model.get("show_measurement_tools");
     toolbarDiv.style.display = show ? 'flex' : 'none';
     editorPanel.style.display = show ? editorPanel.style.display : 'none';
-    
+
     // If hiding tools, disable edit mode
     if (!show && editState.enabled) {
       editState.enabled = false;
       disableEditMode();
     }
   });
-  
+
   model.on("change:show_measurements_list", () => {
     const show = model.get("show_measurements_list");
     measurementsListPanel.style.display = show ? 'block' : 'none';
   });
-  
+
   // Initialize visibility based on initial values
   toolbarDiv.style.display = model.get("show_measurement_tools") ? 'flex' : 'none';
   measurementsListPanel.style.display = model.get("show_measurements_list") ? 'block' : 'none';
-  
+
   // Initialize measurements list
   updateMeasurementsList();
 
   // ============= PUBLIC API =============
-  
+
   return {
     enableMeasurementMode,
     clearAllMeasurements,

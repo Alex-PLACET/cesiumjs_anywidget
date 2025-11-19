@@ -21,7 +21,7 @@ window.CESIUM_BASE_URL = "https://cesium.com/downloads/cesiumjs/releases/1.135/B
 async function render({ model, el }) {
   // Dynamically load CesiumJS from CDN
   const Cesium = await loadCesiumJS();
-  
+
   // Create container div for Cesium viewer
   const container = document.createElement("div");
   container.style.width = "100%";
@@ -67,7 +67,7 @@ async function render({ model, el }) {
 
       // Setup GeoJSON data loader
       geoJsonLoader = setupGeoJSONLoader(viewer, model, Cesium);
-      
+
       // Setup CZML data loader
       czmlLoader = setupCZMLLoader(viewer, model, Cesium);
 
