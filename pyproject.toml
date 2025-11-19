@@ -44,6 +44,28 @@ Repository = "https://github.com/Alex-PLACET/cesiumjs_anywidget"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cesiumjs_anywidget"]
+exclude = [
+    "src/cesiumjs_anywidget/js",
+]
+force-include = { "src/cesiumjs_anywidget/index.js" = "cesiumjs_anywidget/index.js" }
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "tests",
+    "src/cesiumjs_anywidget/js",
+    ".github",
+    ".vscode",
+    "examples",
+    "htmlcov",
+    ".coverage",
+    "**/*.pyc",
+    "**/__pycache__",
+    "test_*.py",
+    "*_test.py",
+    "setup_dev.sh",
+    "run_tests.sh",
+]
+force-include = { "src/cesiumjs_anywidget/index.js" = "src/cesiumjs_anywidget/index.js" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
