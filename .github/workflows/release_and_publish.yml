@@ -20,7 +20,10 @@ on:
 jobs:
   release-and-publish:
     runs-on: ubuntu-latest
-    environment: release
+    environment:
+        name: release
+        url: https://pypi.org/p/cesiumjs-anywidget/
+
     permissions:
       contents: write
       id-token: write  # For PyPI trusted publishing
@@ -120,11 +123,6 @@ jobs:
       with:
         title: Release v${{ steps.new_version.outputs.version }}
         tag: v${{ steps.new_version.outputs.version }}
-        body: |
-          Release version ${{ steps.new_version.outputs.version }}
-
-          Changes in this release:
-          - Automated release created from commit ${{ github.sha }}
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
