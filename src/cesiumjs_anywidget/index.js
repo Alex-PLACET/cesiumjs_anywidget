@@ -85,64 +85,318 @@ function setupViewerListeners(viewer, model, container, Cesium) {
       return;
     viewer.animation.container.style.visibility = model.get("show_animation") ? "visible" : "hidden";
   });
+  model.on("change:atmosphere_settings", () => {
+    if (!viewer || !viewer.scene || !viewer.scene.atmosphere)
+      return;
+    const settings = model.get("atmosphere_settings");
+    if (!settings || Object.keys(settings).length === 0)
+      return;
+    const atmosphere = viewer.scene.atmosphere;
+    if (settings.brightnessShift !== void 0) {
+      atmosphere.brightnessShift = settings.brightnessShift;
+    }
+    if (settings.hueShift !== void 0) {
+      atmosphere.hueShift = settings.hueShift;
+    }
+    if (settings.saturationShift !== void 0) {
+      atmosphere.saturationShift = settings.saturationShift;
+    }
+    if (settings.lightIntensity !== void 0) {
+      atmosphere.lightIntensity = settings.lightIntensity;
+    }
+    if (settings.rayleighCoefficient !== void 0 && Array.isArray(settings.rayleighCoefficient) && settings.rayleighCoefficient.length === 3) {
+      atmosphere.rayleighCoefficient = new Cesium.Cartesian3(
+        settings.rayleighCoefficient[0],
+        settings.rayleighCoefficient[1],
+        settings.rayleighCoefficient[2]
+      );
+    }
+    if (settings.rayleighScaleHeight !== void 0) {
+      atmosphere.rayleighScaleHeight = settings.rayleighScaleHeight;
+    }
+    if (settings.mieCoefficient !== void 0 && Array.isArray(settings.mieCoefficient) && settings.mieCoefficient.length === 3) {
+      atmosphere.mieCoefficient = new Cesium.Cartesian3(
+        settings.mieCoefficient[0],
+        settings.mieCoefficient[1],
+        settings.mieCoefficient[2]
+      );
+    }
+    if (settings.mieScaleHeight !== void 0) {
+      atmosphere.mieScaleHeight = settings.mieScaleHeight;
+    }
+    if (settings.mieAnisotropy !== void 0) {
+      atmosphere.mieAnisotropy = settings.mieAnisotropy;
+    }
+  });
+  model.on("change:sky_atmosphere_settings", () => {
+    if (!viewer || !viewer.scene || !viewer.scene.skyAtmosphere)
+      return;
+    const settings = model.get("sky_atmosphere_settings");
+    if (!settings || Object.keys(settings).length === 0)
+      return;
+    const skyAtmosphere = viewer.scene.skyAtmosphere;
+    if (settings.show !== void 0) {
+      skyAtmosphere.show = settings.show;
+    }
+    if (settings.brightnessShift !== void 0) {
+      skyAtmosphere.brightnessShift = settings.brightnessShift;
+    }
+    if (settings.hueShift !== void 0) {
+      skyAtmosphere.hueShift = settings.hueShift;
+    }
+    if (settings.saturationShift !== void 0) {
+      skyAtmosphere.saturationShift = settings.saturationShift;
+    }
+    if (settings.atmosphereLightIntensity !== void 0) {
+      skyAtmosphere.atmosphereLightIntensity = settings.atmosphereLightIntensity;
+    }
+    if (settings.atmosphereRayleighCoefficient !== void 0 && Array.isArray(settings.atmosphereRayleighCoefficient) && settings.atmosphereRayleighCoefficient.length === 3) {
+      skyAtmosphere.atmosphereRayleighCoefficient = new Cesium.Cartesian3(
+        settings.atmosphereRayleighCoefficient[0],
+        settings.atmosphereRayleighCoefficient[1],
+        settings.atmosphereRayleighCoefficient[2]
+      );
+    }
+    if (settings.atmosphereRayleighScaleHeight !== void 0) {
+      skyAtmosphere.atmosphereRayleighScaleHeight = settings.atmosphereRayleighScaleHeight;
+    }
+    if (settings.atmosphereMieCoefficient !== void 0 && Array.isArray(settings.atmosphereMieCoefficient) && settings.atmosphereMieCoefficient.length === 3) {
+      skyAtmosphere.atmosphereMieCoefficient = new Cesium.Cartesian3(
+        settings.atmosphereMieCoefficient[0],
+        settings.atmosphereMieCoefficient[1],
+        settings.atmosphereMieCoefficient[2]
+      );
+    }
+    if (settings.atmosphereMieScaleHeight !== void 0) {
+      skyAtmosphere.atmosphereMieScaleHeight = settings.atmosphereMieScaleHeight;
+    }
+    if (settings.atmosphereMieAnisotropy !== void 0) {
+      skyAtmosphere.atmosphereMieAnisotropy = settings.atmosphereMieAnisotropy;
+    }
+    if (settings.perFragmentAtmosphere !== void 0) {
+      skyAtmosphere.perFragmentAtmosphere = settings.perFragmentAtmosphere;
+    }
+  });
+  model.on("change:skybox_settings", () => {
+    if (!viewer || !viewer.scene || !viewer.scene.skyBox)
+      return;
+    const settings = model.get("skybox_settings");
+    if (!settings || Object.keys(settings).length === 0)
+      return;
+    const skyBox = viewer.scene.skyBox;
+    if (settings.show !== void 0) {
+      skyBox.show = settings.show;
+    }
+    if (settings.sources !== void 0 && settings.sources !== null) {
+      const sources = settings.sources;
+      if (sources.positiveX && sources.negativeX && sources.positiveY && sources.negativeY && sources.positiveZ && sources.negativeZ) {
+        viewer.scene.skyBox = new Cesium.SkyBox({
+          sources: {
+            positiveX: sources.positiveX,
+            negativeX: sources.negativeX,
+            positiveY: sources.positiveY,
+            negativeY: sources.negativeY,
+            positiveZ: sources.positiveZ,
+            negativeZ: sources.negativeZ
+          }
+        });
+        if (settings.show !== void 0) {
+          viewer.scene.skyBox.show = settings.show;
+        }
+      }
+    }
+  });
+  function getCameraState() {
+    const cartographic = viewer.camera.positionCartographic;
+    return {
+      latitude: Cesium.Math.toDegrees(cartographic.latitude),
+      longitude: Cesium.Math.toDegrees(cartographic.longitude),
+      altitude: cartographic.height,
+      heading: Cesium.Math.toDegrees(viewer.camera.heading),
+      pitch: Cesium.Math.toDegrees(viewer.camera.pitch),
+      roll: Cesium.Math.toDegrees(viewer.camera.roll)
+    };
+  }
+  function getClockState() {
+    if (!viewer.clock)
+      return null;
+    return {
+      current_time: Cesium.JulianDate.toIso8601(viewer.clock.currentTime),
+      multiplier: viewer.clock.multiplier,
+      is_animating: viewer.clock.shouldAnimate
+    };
+  }
+  function sendInteractionEvent(type, additionalData = {}) {
+    const event = {
+      type,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      camera: getCameraState(),
+      clock: getClockState(),
+      ...additionalData
+    };
+    console.log("[CesiumWidget] Interaction event:", type, event);
+    model.set("interaction_event", event);
+    model.save_changes();
+  }
+  const camera = viewer.camera;
+  camera.moveEnd.addEventListener(() => {
+    sendInteractionEvent("camera_move");
+  });
+  const scene = viewer.scene;
+  const handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+  handler.setInputAction((click) => {
+    const pickedData = {};
+    const ray = viewer.camera.getPickRay(click.position);
+    const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+    if (cartesian) {
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      pickedData.picked_position = {
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        altitude: cartographic.height
+      };
+    }
+    const pickedObject = viewer.scene.pick(click.position);
+    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+      const entity = pickedObject.id;
+      pickedData.picked_entity = {
+        id: entity.id,
+        name: entity.name || null
+      };
+      if (entity.properties) {
+        const props = {};
+        const propertyNames = entity.properties.propertyNames;
+        if (propertyNames && propertyNames.length > 0) {
+          propertyNames.forEach((name) => {
+            try {
+              props[name] = entity.properties[name].getValue(viewer.clock.currentTime);
+            } catch (e) {
+            }
+          });
+          if (Object.keys(props).length > 0) {
+            pickedData.picked_entity.properties = props;
+          }
+        }
+      }
+    }
+    sendInteractionEvent("left_click", pickedData);
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  handler.setInputAction((click) => {
+    const pickedData = {};
+    const ray = viewer.camera.getPickRay(click.position);
+    const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+    if (cartesian) {
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      pickedData.picked_position = {
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        altitude: cartographic.height
+      };
+    }
+    sendInteractionEvent("right_click", pickedData);
+  }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+  if (viewer.timeline) {
+    let timelineScrubbing = false;
+    let scrubTimeout = null;
+    viewer.clock.onTick.addEventListener(() => {
+      if (viewer.timeline) {
+        if (scrubTimeout) {
+          clearTimeout(scrubTimeout);
+        }
+        scrubTimeout = setTimeout(() => {
+          if (timelineScrubbing) {
+            timelineScrubbing = false;
+            sendInteractionEvent("timeline_scrub");
+          }
+        }, 500);
+        timelineScrubbing = true;
+      }
+    });
+  }
 }
 function setupGeoJSONLoader(viewer, model, Cesium) {
-  let geojsonDataSource = null;
+  let geojsonDataSources = [];
   model.on("change:geojson_data", async () => {
-    if (!viewer)
+    if (!viewer || !viewer.dataSources)
       return;
-    const geojsonData = model.get("geojson_data");
-    if (geojsonDataSource) {
-      viewer.dataSources.remove(geojsonDataSource);
-      geojsonDataSource = null;
-    }
-    if (geojsonData) {
-      try {
-        geojsonDataSource = await Cesium.GeoJsonDataSource.load(geojsonData, {
-          stroke: Cesium.Color.HOTPINK,
-          fill: Cesium.Color.PINK.withAlpha(0.5),
-          strokeWidth: 3
-        });
-        viewer.dataSources.add(geojsonDataSource);
-        viewer.flyTo(geojsonDataSource);
-      } catch (error) {
-        console.error("Error loading GeoJSON:", error);
+    const geojsonDataArray = model.get("geojson_data");
+    geojsonDataSources.forEach((dataSource) => {
+      if (viewer && viewer.dataSources) {
+        viewer.dataSources.remove(dataSource);
+      }
+    });
+    geojsonDataSources = [];
+    if (geojsonDataArray && Array.isArray(geojsonDataArray)) {
+      for (const geojsonData of geojsonDataArray) {
+        try {
+          const dataSource = await Cesium.GeoJsonDataSource.load(geojsonData, {
+            stroke: Cesium.Color.HOTPINK,
+            fill: Cesium.Color.PINK.withAlpha(0.5),
+            strokeWidth: 3
+          });
+          if (viewer && viewer.dataSources) {
+            viewer.dataSources.add(dataSource);
+            geojsonDataSources.push(dataSource);
+          }
+        } catch (error) {
+          console.error("Error loading GeoJSON:", error);
+        }
+      }
+      if (geojsonDataSources.length > 0 && viewer && viewer.flyTo) {
+        viewer.flyTo(geojsonDataSources[0]);
       }
     }
   });
   return {
     destroy: () => {
-      if (geojsonDataSource && viewer) {
-        viewer.dataSources.remove(geojsonDataSource);
-      }
+      geojsonDataSources.forEach((dataSource) => {
+        if (viewer) {
+          viewer.dataSources.remove(dataSource);
+        }
+      });
+      geojsonDataSources = [];
     }
   };
 }
 function setupCZMLLoader(viewer, model, Cesium) {
-  let czmlDataSource = null;
+  let czmlDataSources = [];
   model.on("change:czml_data", async () => {
-    if (!viewer)
+    if (!viewer || !viewer.dataSources)
       return;
-    const czmlData = model.get("czml_data");
-    if (czmlDataSource) {
-      viewer.dataSources.remove(czmlDataSource);
-      czmlDataSource = null;
-    }
-    if (czmlData && Array.isArray(czmlData) && czmlData.length > 0) {
-      try {
-        czmlDataSource = await Cesium.CzmlDataSource.load(czmlData);
-        viewer.dataSources.add(czmlDataSource);
-        viewer.flyTo(czmlDataSource);
-      } catch (error) {
-        console.error("Error loading CZML:", error);
+    const czmlDataArray = model.get("czml_data");
+    czmlDataSources.forEach((dataSource) => {
+      if (viewer && viewer.dataSources) {
+        viewer.dataSources.remove(dataSource);
+      }
+    });
+    czmlDataSources = [];
+    if (czmlDataArray && Array.isArray(czmlDataArray)) {
+      for (const czmlData of czmlDataArray) {
+        if (Array.isArray(czmlData) && czmlData.length > 0) {
+          try {
+            const dataSource = await Cesium.CzmlDataSource.load(czmlData);
+            if (viewer && viewer.dataSources) {
+              viewer.dataSources.add(dataSource);
+              czmlDataSources.push(dataSource);
+            }
+          } catch (error) {
+            console.error("Error loading CZML:", error);
+          }
+        }
+      }
+      if (czmlDataSources.length > 0 && viewer && viewer.flyTo) {
+        viewer.flyTo(czmlDataSources[0]);
       }
     }
   });
   return {
     destroy: () => {
-      if (czmlDataSource && viewer) {
-        viewer.dataSources.remove(czmlDataSource);
-      }
+      czmlDataSources.forEach((dataSource) => {
+        if (viewer) {
+          viewer.dataSources.remove(dataSource);
+        }
+      });
+      czmlDataSources = [];
     }
   };
 }
@@ -194,6 +448,99 @@ function initializeCameraSync(viewer, model) {
   model.on("change:heading", updateCameraFromModel);
   model.on("change:pitch", updateCameraFromModel);
   model.on("change:roll", updateCameraFromModel);
+  model.on("change:camera_command", () => {
+    const command = model.get("camera_command");
+    if (!command || !command.command || !command.timestamp)
+      return;
+    const cmd = command.command;
+    try {
+      switch (cmd) {
+        case "flyTo":
+          viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(
+              command.longitude,
+              command.latitude,
+              command.altitude
+            ),
+            orientation: {
+              heading: Cesium.Math.toRadians(command.heading || 0),
+              pitch: Cesium.Math.toRadians(command.pitch || -15),
+              roll: Cesium.Math.toRadians(command.roll || 0)
+            },
+            duration: command.duration || 3
+          });
+          break;
+        case "setView":
+          viewer.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(
+              command.longitude,
+              command.latitude,
+              command.altitude
+            ),
+            orientation: {
+              heading: Cesium.Math.toRadians(command.heading || 0),
+              pitch: Cesium.Math.toRadians(command.pitch || -15),
+              roll: Cesium.Math.toRadians(command.roll || 0)
+            }
+          });
+          break;
+        case "lookAt":
+          const target = Cesium.Cartesian3.fromDegrees(
+            command.targetLongitude,
+            command.targetLatitude,
+            command.targetAltitude || 0
+          );
+          const offset = new Cesium.HeadingPitchRange(
+            Cesium.Math.toRadians(command.offsetHeading || 0),
+            Cesium.Math.toRadians(command.offsetPitch || -45),
+            command.offsetRange || 1e3
+          );
+          viewer.camera.lookAt(target, offset);
+          viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+          break;
+        case "moveForward":
+          viewer.camera.moveForward(command.distance || 100);
+          break;
+        case "moveBackward":
+          viewer.camera.moveBackward(command.distance || 100);
+          break;
+        case "moveUp":
+          viewer.camera.moveUp(command.distance || 100);
+          break;
+        case "moveDown":
+          viewer.camera.moveDown(command.distance || 100);
+          break;
+        case "moveLeft":
+          viewer.camera.moveLeft(command.distance || 100);
+          break;
+        case "moveRight":
+          viewer.camera.moveRight(command.distance || 100);
+          break;
+        case "rotateLeft":
+          viewer.camera.rotateLeft(Cesium.Math.toRadians(command.angle || 15));
+          break;
+        case "rotateRight":
+          viewer.camera.rotateRight(Cesium.Math.toRadians(command.angle || 15));
+          break;
+        case "rotateUp":
+          viewer.camera.rotateUp(Cesium.Math.toRadians(command.angle || 15));
+          break;
+        case "rotateDown":
+          viewer.camera.rotateDown(Cesium.Math.toRadians(command.angle || 15));
+          break;
+        case "zoomIn":
+          viewer.camera.zoomIn(command.distance || 100);
+          break;
+        case "zoomOut":
+          viewer.camera.zoomOut(command.distance || 100);
+          break;
+        default:
+          console.warn(`Unknown camera command: ${cmd}`);
+      }
+    } catch (error) {
+      console.error(`Error executing camera command ${cmd}:`, error);
+    }
+  });
   return {
     updateCameraFromModel,
     updateModelFromCamera,
