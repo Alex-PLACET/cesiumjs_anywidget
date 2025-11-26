@@ -119,14 +119,14 @@ class TestLoadGeoJSONMethod:
         """Test loading GeoJSON from dictionary."""
         widget_instance.load_geojson(sample_geojson)
         assert widget_instance.geojson_data is not None
-        assert widget_instance.geojson_data == sample_geojson
+        assert widget_instance.geojson_data == [sample_geojson]
     
     def test_load_geojson_string(self, widget_instance, sample_geojson):
         """Test loading GeoJSON from JSON string."""
         geojson_string = json.dumps(sample_geojson)
         widget_instance.load_geojson(geojson_string)
         assert widget_instance.geojson_data is not None
-        assert widget_instance.geojson_data == sample_geojson
+        assert widget_instance.geojson_data == [sample_geojson]
     
     def test_load_geojson_point(self, widget_instance):
         """Test loading single point GeoJSON."""
@@ -139,7 +139,7 @@ class TestLoadGeoJSONMethod:
             "properties": {"name": "Test"}
         }
         widget_instance.load_geojson(geojson)
-        assert widget_instance.geojson_data == geojson
+        assert widget_instance.geojson_data == [geojson]
     
     def test_load_geojson_polygon(self, widget_instance):
         """Test loading polygon GeoJSON."""
@@ -153,7 +153,7 @@ class TestLoadGeoJSONMethod:
             }
         }
         widget_instance.load_geojson(geojson)
-        assert widget_instance.geojson_data == geojson
+        assert widget_instance.geojson_data == [geojson]
     
     def test_load_geojson_linestring(self, widget_instance):
         """Test loading LineString GeoJSON."""
@@ -165,7 +165,7 @@ class TestLoadGeoJSONMethod:
             }
         }
         widget_instance.load_geojson(geojson)
-        assert widget_instance.geojson_data == geojson
+        assert widget_instance.geojson_data == [geojson]
     
     def test_load_geojson_feature_collection(self, widget_instance):
         """Test loading FeatureCollection GeoJSON."""
@@ -183,8 +183,8 @@ class TestLoadGeoJSONMethod:
             ]
         }
         widget_instance.load_geojson(geojson)
-        assert widget_instance.geojson_data == geojson
-        assert len(widget_instance.geojson_data["features"]) == 2
+        assert widget_instance.geojson_data == [geojson]
+        assert len(widget_instance.geojson_data[0]["features"]) == 2
     
     def test_load_geojson_overwrites(self, widget_instance, sample_geojson):
         """Test that loading new GeoJSON overwrites previous data."""
@@ -196,7 +196,7 @@ class TestLoadGeoJSONMethod:
         }
         widget_instance.load_geojson(new_geojson)
         
-        assert widget_instance.geojson_data == new_geojson
+        assert widget_instance.geojson_data == [new_geojson]
         assert widget_instance.geojson_data != sample_geojson
 
 

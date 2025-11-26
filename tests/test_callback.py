@@ -17,12 +17,13 @@ if hasattr(w, 'interaction_event'):
 # Test callback registration
 callback_called = []
 
-def test_callback(event):
+def event_callback(event):
+    """Callback function to handle interaction events"""
     callback_called.append(event)
     print(f"Callback called with event: {event}")
 
 if hasattr(w, 'on_interaction'):
-    w.on_interaction(test_callback)
+    w.on_interaction(event_callback)
     print("✅ Callback registered successfully")
     
     # Simulate an event by setting the trait directly

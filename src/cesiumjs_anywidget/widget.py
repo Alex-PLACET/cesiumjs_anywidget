@@ -180,6 +180,14 @@ class CesiumWidget(anywidget.AnyWidget):
         >>> widget.fly_to(40.7128, -74.0060, heading=45, pitch=-30)
         """
         import time
+        # Update traitlets for state sync
+        self.latitude = latitude
+        self.longitude = longitude
+        self.altitude = altitude
+        self.heading = heading
+        self.pitch = pitch
+        self.roll = roll
+        # Send command for animation
         self.camera_command = {
             'command': 'flyTo',
             'latitude': latitude,
@@ -219,6 +227,14 @@ class CesiumWidget(anywidget.AnyWidget):
         >>> widget.set_view(40.7128, -74.0060, heading=90, pitch=-45)
         """
         import time
+        # Update traitlets for state sync
+        self.latitude = latitude
+        self.longitude = longitude
+        self.altitude = altitude
+        self.heading = heading
+        self.pitch = pitch
+        self.roll = roll
+        # Send command for instant view change
         self.camera_command = {
             'command': 'setView',
             'latitude': latitude,
@@ -545,39 +561,37 @@ class CesiumWidget(anywidget.AnyWidget):
         if roll is not None:
             self.roll = roll
 
-    def load_geojson(self, geojson, clear_existing=False):
+    def load_geojson(self, geojson, append=False):
         """Load GeoJSON data for visualization.
 
         Parameters
         ----------
         geojson : dict or str
             GeoJSON dictionary or GeoJSON string
-        clear_existing : bool, optional
-            If True, clear existing GeoJSON data before loading new data (default: False)
+        append : bool, optional
+            If True, append to existing GeoJSON data. If False (default), replace existing data.
             
         Examples
         --------
-        Load a single GeoJSON:
+        Load a single GeoJSON (replaces existing):
         >>> widget.load_geojson({"type": "FeatureCollection", "features": [...]})
         
         Load multiple GeoJSON datasets:
         >>> widget.load_geojson(geojson1)
-        >>> widget.load_geojson(geojson2)  # Adds to existing data
-        
-        Replace all GeoJSON data:
-        >>> widget.load_geojson(new_geojson, clear_existing=True)
+        >>> widget.load_geojson(geojson2, append=True)  # Adds to existing data
         """
         if isinstance(geojson, str):
             import json
             geojson = json.loads(geojson)
         
-        if clear_existing:
-            self.geojson_data = [geojson]
-        else:
+        if append:
             # Append to existing list
             current_data = list(self.geojson_data)
             current_data.append(geojson)
             self.geojson_data = current_data
+        else:
+            # Replace existing data
+            self.geojson_data = [geojson]
     
     def clear_geojson(self):
         """Clear all GeoJSON data from the viewer.
@@ -588,7 +602,7 @@ class CesiumWidget(anywidget.AnyWidget):
         """
         self.geojson_data = []
 
-    def load_czml(self, czml: str | list, clear_existing=False):
+    def load_czml(self, czml: str | list, append=False):
         """Load CZML data for visualization.
 
         CZML (Cesium Language) is a JSON format for describing time-dynamic
@@ -600,8 +614,8 @@ class CesiumWidget(anywidget.AnyWidget):
         ----------
         czml : str or list
             CZML document as a JSON string or list of packet dictionaries.
-        clear_existing : bool, optional
-            If True, clear existing CZML data before loading new data (default: False)
+        append : bool, optional
+            If True, append to existing CZML data. If False (default), replace existing data.
 
         Examples
         --------
@@ -619,11 +633,9 @@ class CesiumWidget(anywidget.AnyWidget):
         ... ]
         >>> widget.load_czml(czml)
         
-        Load multiple CZML documents:
+        Append multiple CZML documents:
         >>> widget.load_czml(czml_doc1)
-        >>> widget.load_czml(czml_doc2)  # Adds to existing data
-        
-        Replace all CZML data:
+        >>> widget.load_czml(czml_doc2, append=True)  # Adds to existing data
         >>> widget.load_czml(new_czml, clear_existing=True)
         """
         import json
@@ -640,13 +652,14 @@ class CesiumWidget(anywidget.AnyWidget):
         if len(czml) == 0:
             raise ValueError("CZML document must contain at least one packet")
 
-        if clear_existing:
-            self.czml_data = [czml]
-        else:
+        if append:
             # Append to existing list
             current_data = list(self.czml_data)
             current_data.append(czml)
             self.czml_data = current_data
+        else:
+            # Replace existing data
+            self.czml_data = [czml]
     
     def clear_czml(self):
         """Clear all CZML data from the viewer.

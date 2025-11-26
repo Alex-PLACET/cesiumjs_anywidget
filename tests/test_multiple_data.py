@@ -34,7 +34,7 @@ print(f"   GeoJSON data count: {len(w.geojson_data)}")
 assert len(w.geojson_data) == 1, "Should have 1 GeoJSON dataset"
 
 print("\n2. Loading second GeoJSON (appending)...")
-w.load_geojson(geojson2)
+w.load_geojson(geojson2, append=True)
 print(f"   GeoJSON data count: {len(w.geojson_data)}")
 assert len(w.geojson_data) == 2, "Should have 2 GeoJSON datasets"
 
@@ -43,12 +43,12 @@ w.clear_geojson()
 print(f"   GeoJSON data count: {len(w.geojson_data)}")
 assert len(w.geojson_data) == 0, "Should have 0 GeoJSON datasets"
 
-print("\n4. Loading GeoJSON with clear_existing=True...")
-w.load_geojson(geojson1)
-w.load_geojson(geojson2)
+print("\n4. Loading GeoJSON with replace (default)...")
+w.load_geojson(geojson1, append=True)
+w.load_geojson(geojson2, append=True)
 print(f"   Before: {len(w.geojson_data)} datasets")
-w.load_geojson(geojson1, clear_existing=True)
-print(f"   After clear_existing: {len(w.geojson_data)} datasets")
+w.load_geojson(geojson1)  # Replace by default
+print(f"   After replace: {len(w.geojson_data)} datasets")
 assert len(w.geojson_data) == 1, "Should have 1 GeoJSON dataset"
 
 # Test CZML
@@ -69,7 +69,7 @@ print(f"   CZML data count: {len(w.czml_data)}")
 assert len(w.czml_data) == 1, "Should have 1 CZML document"
 
 print("\n6. Loading second CZML (appending)...")
-w.load_czml(czml2)
+w.load_czml(czml2, append=True)
 print(f"   CZML data count: {len(w.czml_data)}")
 assert len(w.czml_data) == 2, "Should have 2 CZML documents"
 
@@ -78,20 +78,21 @@ w.clear_czml()
 print(f"   CZML data count: {len(w.czml_data)}")
 assert len(w.czml_data) == 0, "Should have 0 CZML documents"
 
-print("\n8. Loading CZML with clear_existing=True...")
-w.load_czml(czml1)
-w.load_czml(czml2)
+print("\n8. Loading CZML with replace (default)...")
+w.load_czml(czml1, append=True)
+w.load_czml(czml2, append=True)
 print(f"   Before: {len(w.czml_data)} documents")
-w.load_czml(czml1, clear_existing=True)
-print(f"   After clear_existing: {len(w.czml_data)} documents")
+w.load_czml(czml1)  # Replace by default
+print(f"   After replace: {len(w.czml_data)} documents")
 assert len(w.czml_data) == 1, "Should have 1 CZML document"
 
 print("\n" + "=" * 60)
 print("✅ All tests passed!")
 print("=" * 60)
 print("\nNew capabilities:")
-print("  • load_geojson() - Load multiple GeoJSON datasets")
+print("  • load_geojson() - Load GeoJSON data (replaces by default)")
+print("  • load_geojson(data, append=True) - Append GeoJSON data")
 print("  • clear_geojson() - Clear all GeoJSON data")
-print("  • load_czml() - Load multiple CZML documents")
+print("  • load_czml() - Load CZML documents (replaces by default)")
+print("  • load_czml(data, append=True) - Append CZML data")
 print("  • clear_czml() - Clear all CZML data")
-print("  • clear_existing parameter - Replace instead of append")

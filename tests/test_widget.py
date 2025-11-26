@@ -38,7 +38,7 @@ class TestWidgetInitialization:
     
     def test_default_geojson_data(self, widget_instance):
         """Test default GeoJSON data."""
-        assert widget_instance.geojson_data is None
+        assert widget_instance.geojson_data == []
 
 
 class TestWidgetConfiguration:

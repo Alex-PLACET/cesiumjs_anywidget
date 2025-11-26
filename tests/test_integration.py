@@ -150,8 +150,8 @@ class TestEdgeCases:
             "features": []
         }
         widget_instance.load_geojson(geojson)
-        assert widget_instance.geojson_data == geojson
-        assert len(widget_instance.geojson_data["features"]) == 0
+        assert widget_instance.geojson_data == [geojson]
+        assert len(widget_instance.geojson_data[0]["features"]) == 0
     
     def test_ion_token_empty_string(self, widget_instance):
         """Test setting Ion token to empty string."""
