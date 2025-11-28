@@ -447,27 +447,48 @@ export function initializeMeasurementTools(viewer, model, container) {
     editorPanel.style.display = 'block';
 
     // Add event listeners
-    document.getElementById('apply-coords').onclick = () => {
-      const lon = parseFloat(document.getElementById('edit-lon').value);
-      const lat = parseFloat(document.getElementById('edit-lat').value);
-      const alt = parseFloat(document.getElementById('edit-alt').value);
+    const applyBtn = document.getElementById('apply-coords');
+    const closeBtn = document.getElementById('close-editor');
+    const editLonInput = document.getElementById('edit-lon');
+    const editLatInput = document.getElementById('edit-lat');
+    const editAltInput = document.getElementById('edit-alt');
 
-      const newPosition = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
-      updatePointPosition(newPosition);
-      finalizeMeasurementUpdate();
-    };
+    if (!applyBtn || !closeBtn || !editLonInput || !editLatInput || !editAltInput) {
+      console.warn("[CesiumWidget] Editor panel input elements not found in DOM");
+    }
 
-    document.getElementById('close-editor').onclick = () => {
-      deselectPoint();
-    };
+    if (applyBtn) {
+      applyBtn.onclick = () => {
+        if (!editLonInput || !editLatInput || !editAltInput) {
+          console.warn("[CesiumWidget] Editor input fields not available");
+          return;
+        }
+        const lon = parseFloat(editLonInput.value);
+        const lat = parseFloat(editLatInput.value);
+        const alt = parseFloat(editAltInput.value);
+
+        const newPosition = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
+        updatePointPosition(newPosition);
+        finalizeMeasurementUpdate();
+      };
+    }
+
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        deselectPoint();
+      };
+    }
 
     // Update on Enter key
     ['edit-lon', 'edit-lat', 'edit-alt'].forEach(id => {
-      document.getElementById(id).onkeypress = (e) => {
-        if (e.key === 'Enter') {
-          document.getElementById('apply-coords').click();
-        }
-      };
+      const element = document.getElementById(id);
+      if (element) {
+        element.onkeypress = (e) => {
+          if (e.key === 'Enter' && applyBtn) {
+            applyBtn.click();
+          }
+        };
+      }
     });
   }
 
@@ -668,6 +689,11 @@ export function initializeMeasurementTools(viewer, model, container) {
     const results = model.get("measurement_results") || [];
     const listContent = document.getElementById("measurements-list-content");
 
+    if (!listContent) {
+      console.warn("[CesiumWidget] Measurements list content element not found in DOM");
+      return;
+    }
+
     if (results.length === 0) {
       listContent.innerHTML = '<div style="color: #888; font-style: italic;">No measurements yet</div>';
       return;
@@ -731,10 +757,15 @@ export function initializeMeasurementTools(viewer, model, container) {
       listContent.appendChild(measurementDiv);
 
       // Add rename functionality
-      document.getElementById(`rename-${index}`).onclick = (e) => {
-        e.stopPropagation();
-        renameMeasurement(index, name);
-      };
+      const renameBtn = document.getElementById(`rename-${index}`);
+      if (renameBtn) {
+        renameBtn.onclick = (e) => {
+          e.stopPropagation();
+          renameMeasurement(index, name);
+        };
+      } else {
+        console.warn(`[CesiumWidget] Rename button not found for measurement ${index}`);
+      }
     });
   }
 
