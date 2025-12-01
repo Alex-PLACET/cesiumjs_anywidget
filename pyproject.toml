@@ -9,7 +9,7 @@ description = "A Jupyter widget for CesiumJS 3D globe visualization using anywid
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
-    { name = "Alex PLACET" }
+    { name = "Alexis Placet" }
 ]
 requires-python = ">=3.8"
 classifiers = [

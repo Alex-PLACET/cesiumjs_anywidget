@@ -13,10 +13,20 @@
  */
 export function initializeCameraSync(viewer, model) {
   const Cesium = window.Cesium;
-  let cameraUpdateTimeout;
+  let cameraUpdateTimeout = null;
+  let isDestroyed = false;
+
+  console.log('[CesiumWidget:CameraSync] Initializing camera synchronization');
 
   function updateCameraFromModel() {
-    if (!viewer) return;
+    if (isDestroyed) {
+      console.log('[CesiumWidget:CameraSync] Skipping updateCameraFromModel - module destroyed');
+      return;
+    }
+    if (!viewer) {
+      console.warn('[CesiumWidget:CameraSync] updateCameraFromModel called but viewer is null');
+      return;
+    }
     
     const lat = model.get("latitude");
     const lon = model.get("longitude");
@@ -25,6 +35,8 @@ export function initializeCameraSync(viewer, model) {
     const pitch = Cesium.Math.toRadians(model.get("pitch"));
     const roll = Cesium.Math.toRadians(model.get("roll"));
 
+    console.log('[CesiumWidget:CameraSync] Updating camera from model:', { lat, lon, alt });
+
     viewer.camera.setView({
       destination: Cesium.Cartesian3.fromDegrees(lon, lat, alt),
       orientation: { heading, pitch, roll },
@@ -32,12 +44,25 @@ export function initializeCameraSync(viewer, model) {
   }
 
   function updateModelFromCamera() {
-    if (!viewer) return;
+    if (isDestroyed) {
+      console.log('[CesiumWidget:CameraSync] Skipping updateModelFromCamera - module destroyed');
+      return;
+    }
+    if (!viewer) {
+      console.warn('[CesiumWidget:CameraSync] updateModelFromCamera called but viewer is null');
+      return;
+    }
     
     const position = viewer.camera.positionCartographic;
     const heading = viewer.camera.heading;
     const pitch = viewer.camera.pitch;
     const roll = viewer.camera.roll;
+
+    console.log('[CesiumWidget:CameraSync] Updating model from camera:', {
+      lat: Cesium.Math.toDegrees(position.latitude),
+      lon: Cesium.Math.toDegrees(position.longitude),
+      alt: position.height
+    });
 
     model.set("latitude", Cesium.Math.toDegrees(position.latitude));
     model.set("longitude", Cesium.Math.toDegrees(position.longitude));
@@ -49,9 +74,17 @@ export function initializeCameraSync(viewer, model) {
   }
 
   function handleCameraChanged() {
-    clearTimeout(cameraUpdateTimeout);
+    if (isDestroyed) {
+      console.log('[CesiumWidget:CameraSync] Skipping handleCameraChanged - module destroyed');
+      return;
+    }
+    if (cameraUpdateTimeout) {
+      clearTimeout(cameraUpdateTimeout);
+    }
     cameraUpdateTimeout = setTimeout(() => {
-      updateModelFromCamera();
+      if (!isDestroyed) {
+        updateModelFromCamera();
+      }
     }, 500);
   }
 
@@ -71,10 +104,15 @@ export function initializeCameraSync(viewer, model) {
 
   // Handle camera commands from Python
   model.on("change:camera_command", () => {
+    if (isDestroyed) {
+      console.log('[CesiumWidget:CameraSync] Skipping camera_command - module destroyed');
+      return;
+    }
     const command = model.get("camera_command");
     if (!command || !command.command || !command.timestamp) return;
 
     const cmd = command.command;
+    console.log('[CesiumWidget:CameraSync] Executing camera command:', cmd, command);
 
     try {
       switch (cmd) {
@@ -185,8 +223,14 @@ export function initializeCameraSync(viewer, model) {
     updateCameraFromModel,
     updateModelFromCamera,
     destroy: () => {
-      clearTimeout(cameraUpdateTimeout);
+      console.log('[CesiumWidget:CameraSync] Destroying camera sync module');
+      isDestroyed = true;
+      if (cameraUpdateTimeout) {
+        clearTimeout(cameraUpdateTimeout);
+        cameraUpdateTimeout = null;
+      }
       viewer.camera.changed.removeEventListener(handleCameraChanged);
+      console.log('[CesiumWidget:CameraSync] Camera sync module destroyed');
     }
   };
 }

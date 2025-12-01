@@ -10,19 +10,29 @@
  * @returns {Promise<Object>} Cesium global object
  */
 export async function loadCesiumJS() {
+  console.log('[CesiumWidget:ViewerInit] Loading CesiumJS...');
   if (window.Cesium) {
+    console.log('[CesiumWidget:ViewerInit] CesiumJS already loaded, reusing existing instance');
     return window.Cesium;
   }
 
   const script = document.createElement('script');
   script.src = 'https://cesium.com/downloads/cesiumjs/releases/1.135/Build/Cesium/Cesium.js';
+  console.log('[CesiumWidget:ViewerInit] Loading CesiumJS from CDN...');
 
   await new Promise((resolve, reject) => {
-    script.onload = resolve;
-    script.onerror = reject;
+    script.onload = () => {
+      console.log('[CesiumWidget:ViewerInit] CesiumJS script loaded successfully');
+      resolve();
+    };
+    script.onerror = (error) => {
+      console.error('[CesiumWidget:ViewerInit] Failed to load CesiumJS script:', error);
+      reject(error);
+    };
     document.head.appendChild(script);
   });
 
+  console.log('[CesiumWidget:ViewerInit] CesiumJS initialized');
   return window.Cesium;
 }
 
@@ -61,6 +71,7 @@ export function createLoadingIndicator(container, hasToken) {
  * @returns {Object} Cesium Viewer instance
  */
 export function createViewer(container, model, Cesium) {
+  console.log('[CesiumWidget:ViewerInit] Creating viewer with options...');
   const viewerOptions = {
     timeline: model.get("show_timeline"),
     animation: model.get("show_animation"),
@@ -74,13 +85,16 @@ export function createViewer(container, model, Cesium) {
     shadows: false,
     shouldAnimate: false,
   };
+  console.log('[CesiumWidget:ViewerInit] Viewer options:', viewerOptions);
 
   if (model.get("enable_terrain")) {
     viewerOptions.terrain = Cesium.Terrain.fromWorldTerrain();
+    console.log('[CesiumWidget:ViewerInit] Terrain enabled');
   }
 
   const viewer = new Cesium.Viewer(container, viewerOptions);
   viewer.scene.globe.enableLighting = model.get("enable_lighting");
+  console.log('[CesiumWidget:ViewerInit] Viewer created, lighting:', model.get("enable_lighting"));
 
   return viewer;
 }
@@ -93,8 +107,17 @@ export function createViewer(container, model, Cesium) {
  * @param {Object} Cesium - Cesium global object
  */
 export function setupViewerListeners(viewer, model, container, Cesium) {
+  console.log('[CesiumWidget:ViewerInit] Setting up viewer listeners');
+  let isDestroyed = false;
+  let scrubTimeout = null;
+
   model.on("change:enable_terrain", () => {
+    if (isDestroyed) {
+      console.log('[CesiumWidget:ViewerInit] Skipping enable_terrain change - destroyed');
+      return;
+    }
     if (!viewer) return;
+    console.log('[CesiumWidget:ViewerInit] Terrain setting changed:', model.get("enable_terrain"));
     if (model.get("enable_terrain")) {
       viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
     } else {
@@ -103,33 +126,43 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
   });
 
   model.on("change:enable_lighting", () => {
+    if (isDestroyed) return;
     if (!viewer) return;
+    console.log('[CesiumWidget:ViewerInit] Lighting setting changed:', model.get("enable_lighting"));
     viewer.scene.globe.enableLighting = model.get("enable_lighting");
   });
 
   model.on("change:height", () => {
+    if (isDestroyed) return;
     if (!viewer) return;
+    console.log('[CesiumWidget:ViewerInit] Height changed:', model.get("height"));
     container.style.height = model.get("height");
     viewer.resize();
   });
 
   model.on("change:show_timeline", () => {
+    if (isDestroyed) return;
     if (!viewer || !viewer.timeline) return;
+    console.log('[CesiumWidget:ViewerInit] Timeline visibility changed:', model.get("show_timeline"));
     viewer.timeline.container.style.visibility = model.get("show_timeline") ? "visible" : "hidden";
   });
 
   model.on("change:show_animation", () => {
+    if (isDestroyed) return;
     if (!viewer || !viewer.animation) return;
+    console.log('[CesiumWidget:ViewerInit] Animation visibility changed:', model.get("show_animation"));
     viewer.animation.container.style.visibility = model.get("show_animation") ? "visible" : "hidden";
   });
 
   // Setup atmosphere settings listener
   model.on("change:atmosphere_settings", () => {
+    if (isDestroyed) return;
     if (!viewer || !viewer.scene || !viewer.scene.atmosphere) return;
     
     const settings = model.get("atmosphere_settings");
     if (!settings || Object.keys(settings).length === 0) return;
     
+    console.log('[CesiumWidget:ViewerInit] Atmosphere settings changed:', settings);
     const atmosphere = viewer.scene.atmosphere;
     
     // Apply each setting if provided
@@ -172,11 +205,13 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
 
   // Setup sky atmosphere settings listener
   model.on("change:sky_atmosphere_settings", () => {
+    if (isDestroyed) return;
     if (!viewer || !viewer.scene || !viewer.scene.skyAtmosphere) return;
     
     const settings = model.get("sky_atmosphere_settings");
     if (!settings || Object.keys(settings).length === 0) return;
     
+    console.log('[CesiumWidget:ViewerInit] Sky atmosphere settings changed:', settings);
     const skyAtmosphere = viewer.scene.skyAtmosphere;
     
     // Apply each setting if provided
@@ -225,11 +260,13 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
 
   // SkyBox settings listener
   model.on("change:skybox_settings", () => {
+    if (isDestroyed) return;
     if (!viewer || !viewer.scene || !viewer.scene.skyBox) return;
     
     const settings = model.get("skybox_settings");
     if (!settings || Object.keys(settings).length === 0) return;
     
+    console.log('[CesiumWidget:ViewerInit] SkyBox settings changed:', settings);
     const skyBox = viewer.scene.skyBox;
     
     // Apply show setting
@@ -290,6 +327,10 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
 
   // Helper function to send interaction event
   function sendInteractionEvent(type, additionalData = {}) {
+    if (isDestroyed) {
+      console.log('[CesiumWidget:ViewerInit] Skipping interaction event - destroyed:', type);
+      return;
+    }
     const event = {
       type: type,
       timestamp: new Date().toISOString(),
@@ -298,7 +339,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
       ...additionalData
     };
     
-    console.log('[CesiumWidget] Interaction event:', type, event);
+    console.log('[CesiumWidget:ViewerInit] Interaction event:', type, event);
     model.set("interaction_event", event);
     model.save_changes();
   }
@@ -380,19 +421,20 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
   // Track timeline scrubbing (if timeline exists)
   if (viewer.timeline) {
     let timelineScrubbing = false;
-    let scrubTimeout = null;
     
     // Listen to clock changes to detect timeline interaction
     viewer.clock.onTick.addEventListener(() => {
+      if (isDestroyed) return;
       if (viewer.timeline) {
         // Clear any existing timeout
         if (scrubTimeout) {
           clearTimeout(scrubTimeout);
+          scrubTimeout = null;
         }
         
         // Set timeout to detect when scrubbing ends
         scrubTimeout = setTimeout(() => {
-          if (timelineScrubbing) {
+          if (!isDestroyed && timelineScrubbing) {
             timelineScrubbing = false;
             sendInteractionEvent('timeline_scrub');
           }
@@ -402,6 +444,8 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
       }
     });
   }
+
+  console.log('[CesiumWidget:ViewerInit] Viewer listeners setup complete');
 }
 
 /**
@@ -411,11 +455,22 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
  * @param {Object} Cesium - Cesium global object
  */
 export function setupGeoJSONLoader(viewer, model, Cesium) {
+  console.log('[CesiumWidget:ViewerInit] Setting up GeoJSON loader');
   let geojsonDataSources = [];
+  let isDestroyed = false;
 
-  model.on("change:geojson_data", async () => {
-    if (!viewer || !viewer.dataSources) return;
+  // Function to load GeoJSON data
+  async function loadGeoJSONData(flyToData = true) {
+    if (isDestroyed) {
+      console.log('[CesiumWidget:ViewerInit] Skipping geojson_data load - destroyed');
+      return;
+    }
+    if (!viewer || !viewer.dataSources) {
+      console.warn('[CesiumWidget:ViewerInit] Cannot load GeoJSON - viewer or dataSources not available');
+      return;
+    }
     const geojsonDataArray = model.get("geojson_data");
+    console.log('[CesiumWidget:ViewerInit] Loading GeoJSON data, count:', geojsonDataArray?.length || 0);
 
     // Remove all existing GeoJSON data sources
     geojsonDataSources.forEach(dataSource => {
@@ -429,6 +484,7 @@ export function setupGeoJSONLoader(viewer, model, Cesium) {
     if (geojsonDataArray && Array.isArray(geojsonDataArray)) {
       for (const geojsonData of geojsonDataArray) {
         try {
+          console.log('[CesiumWidget:ViewerInit] Loading GeoJSON dataset...');
           const dataSource = await Cesium.GeoJsonDataSource.load(geojsonData, {
             stroke: Cesium.Color.HOTPINK,
             fill: Cesium.Color.PINK.withAlpha(0.5),
@@ -438,21 +494,35 @@ export function setupGeoJSONLoader(viewer, model, Cesium) {
           if (viewer && viewer.dataSources) {
             viewer.dataSources.add(dataSource);
             geojsonDataSources.push(dataSource);
+            console.log('[CesiumWidget:ViewerInit] GeoJSON dataset loaded successfully');
           }
         } catch (error) {
-          console.error("Error loading GeoJSON:", error);
+          console.error("[CesiumWidget:ViewerInit] Error loading GeoJSON:", error);
         }
       }
       
       // Fly to the first data source if any were loaded
-      if (geojsonDataSources.length > 0 && viewer && viewer.flyTo) {
+      if (flyToData && geojsonDataSources.length > 0 && viewer && viewer.flyTo) {
+        console.log('[CesiumWidget:ViewerInit] Flying to GeoJSON data');
         viewer.flyTo(geojsonDataSources[0]);
       }
     }
-  });
+  }
+
+  // Listen for changes to geojson_data
+  model.on("change:geojson_data", () => loadGeoJSONData(true));
+
+  // Load any initial GeoJSON data
+  const initialData = model.get("geojson_data");
+  if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+    console.log('[CesiumWidget:ViewerInit] Loading initial GeoJSON data...');
+    loadGeoJSONData(true);
+  }
 
   return {
     destroy: () => {
+      console.log('[CesiumWidget:ViewerInit] Destroying GeoJSON loader');
+      isDestroyed = true;
       geojsonDataSources.forEach(dataSource => {
         if (viewer) {
           viewer.dataSources.remove(dataSource);
@@ -470,11 +540,22 @@ export function setupGeoJSONLoader(viewer, model, Cesium) {
  * @param {Object} Cesium - Cesium global object
  */
 export function setupCZMLLoader(viewer, model, Cesium) {
+  console.log('[CesiumWidget:ViewerInit] Setting up CZML loader');
   let czmlDataSources = [];
+  let isDestroyed = false;
 
-  model.on("change:czml_data", async () => {
-    if (!viewer || !viewer.dataSources) return;
+  // Function to load CZML data
+  async function loadCZMLData(flyToData = true) {
+    if (isDestroyed) {
+      console.log('[CesiumWidget:ViewerInit] Skipping czml_data load - destroyed');
+      return;
+    }
+    if (!viewer || !viewer.dataSources) {
+      console.warn('[CesiumWidget:ViewerInit] Cannot load CZML - viewer or dataSources not available');
+      return;
+    }
     const czmlDataArray = model.get("czml_data");
+    console.log('[CesiumWidget:ViewerInit] Loading CZML data, count:', czmlDataArray?.length || 0);
 
     // Remove all existing CZML data sources
     czmlDataSources.forEach(dataSource => {
@@ -489,27 +570,44 @@ export function setupCZMLLoader(viewer, model, Cesium) {
       for (const czmlData of czmlDataArray) {
         if (Array.isArray(czmlData) && czmlData.length > 0) {
           try {
+            console.log('[CesiumWidget:ViewerInit] Loading CZML document with', czmlData.length, 'packets...');
             const dataSource = await Cesium.CzmlDataSource.load(czmlData);
             // Check viewer still exists after async operation
             if (viewer && viewer.dataSources) {
               viewer.dataSources.add(dataSource);
               czmlDataSources.push(dataSource);
+              console.log('[CesiumWidget:ViewerInit] CZML document loaded successfully, entities:', dataSource.entities.values.length);
             }
           } catch (error) {
-            console.error("Error loading CZML:", error);
+            console.error("[CesiumWidget:ViewerInit] Error loading CZML:", error);
           }
+        } else {
+          console.warn('[CesiumWidget:ViewerInit] Skipping invalid CZML data (not an array or empty):', czmlData);
         }
       }
       
       // Fly to the first data source if any were loaded
-      if (czmlDataSources.length > 0 && viewer && viewer.flyTo) {
+      if (flyToData && czmlDataSources.length > 0 && viewer && viewer.flyTo) {
+        console.log('[CesiumWidget:ViewerInit] Flying to CZML data');
         viewer.flyTo(czmlDataSources[0]);
       }
     }
-  });
+  }
+
+  // Listen for changes to czml_data
+  model.on("change:czml_data", () => loadCZMLData(true));
+
+  // Load any initial CZML data
+  const initialData = model.get("czml_data");
+  if (initialData && Array.isArray(initialData) && initialData.length > 0) {
+    console.log('[CesiumWidget:ViewerInit] Loading initial CZML data...');
+    loadCZMLData(true);
+  }
 
   return {
     destroy: () => {
+      console.log('[CesiumWidget:ViewerInit] Destroying CZML loader');
+      isDestroyed = true;
       czmlDataSources.forEach(dataSource => {
         if (viewer) {
           viewer.dataSources.remove(dataSource);
