@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cesiumjs-anywidget"
-version = "0.3.0"
+version = "0.4.0"
 description = "A Jupyter widget for CesiumJS 3D globe visualization using anywidget"
 readme = "README.md"
 license = { file = "LICENSE" }
