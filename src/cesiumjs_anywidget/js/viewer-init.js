@@ -304,25 +304,39 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
 
   // Helper function to get current camera state
   function getCameraState() {
-    const cartographic = viewer.camera.positionCartographic;
-    return {
-      latitude: Cesium.Math.toDegrees(cartographic.latitude),
-      longitude: Cesium.Math.toDegrees(cartographic.longitude),
-      altitude: cartographic.height,
-      heading: Cesium.Math.toDegrees(viewer.camera.heading),
-      pitch: Cesium.Math.toDegrees(viewer.camera.pitch),
-      roll: Cesium.Math.toDegrees(viewer.camera.roll)
-    };
+    if (!viewer || !viewer.camera || !viewer.camera.positionCartographic) {
+      console.warn('[CesiumWidget:ViewerInit] Cannot get camera state - viewer or camera not available');
+      return null;
+    }
+    try {
+      const cartographic = viewer.camera.positionCartographic;
+      return {
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        altitude: cartographic.height,
+        heading: Cesium.Math.toDegrees(viewer.camera.heading),
+        pitch: Cesium.Math.toDegrees(viewer.camera.pitch),
+        roll: Cesium.Math.toDegrees(viewer.camera.roll)
+      };
+    } catch (error) {
+      console.warn('[CesiumWidget:ViewerInit] Error getting camera state:', error);
+      return null;
+    }
   }
 
   // Helper function to get clock state
   function getClockState() {
-    if (!viewer.clock) return null;
-    return {
-      current_time: Cesium.JulianDate.toIso8601(viewer.clock.currentTime),
-      multiplier: viewer.clock.multiplier,
-      is_animating: viewer.clock.shouldAnimate
-    };
+    if (!viewer || !viewer.clock) return null;
+    try {
+      return {
+        current_time: Cesium.JulianDate.toIso8601(viewer.clock.currentTime),
+        multiplier: viewer.clock.multiplier,
+        is_animating: viewer.clock.shouldAnimate
+      };
+    } catch (error) {
+      console.warn('[CesiumWidget:ViewerInit] Error getting clock state:', error);
+      return null;
+    }
   }
 
   // Helper function to send interaction event
@@ -331,10 +345,21 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
       console.log('[CesiumWidget:ViewerInit] Skipping interaction event - destroyed:', type);
       return;
     }
+    if (!viewer) {
+      console.warn('[CesiumWidget:ViewerInit] Cannot send interaction event - viewer not available');
+      return;
+    }
+    
+    const cameraState = getCameraState();
+    if (!cameraState) {
+      console.warn('[CesiumWidget:ViewerInit] Skipping interaction event - camera state not available');
+      return;
+    }
+    
     const event = {
       type: type,
       timestamp: new Date().toISOString(),
-      camera: getCameraState(),
+      camera: cameraState,
       clock: getClockState(),
       ...additionalData
     };
@@ -347,6 +372,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
   // Track camera movement end
   const camera = viewer.camera;
   camera.moveEnd.addEventListener(() => {
+    if (isDestroyed || !viewer) return;
     sendInteractionEvent('camera_move');
   });
 
@@ -355,64 +381,84 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
   const handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
   
   handler.setInputAction((click) => {
+    if (isDestroyed || !viewer || !viewer.scene || !viewer.camera) return;
+    
     const pickedData = {};
     
     // Try to get picked position
-    const ray = viewer.camera.getPickRay(click.position);
-    const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
-    if (cartesian) {
-      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-      pickedData.picked_position = {
-        latitude: Cesium.Math.toDegrees(cartographic.latitude),
-        longitude: Cesium.Math.toDegrees(cartographic.longitude),
-        altitude: cartographic.height
-      };
+    try {
+      const ray = viewer.camera.getPickRay(click.position);
+      if (ray && viewer.scene.globe) {
+        const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+        if (cartesian) {
+          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          pickedData.picked_position = {
+            latitude: Cesium.Math.toDegrees(cartographic.latitude),
+            longitude: Cesium.Math.toDegrees(cartographic.longitude),
+            altitude: cartographic.height
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('[CesiumWidget:ViewerInit] Error picking position:', error);
     }
     
     // Try to get picked entity
-    const pickedObject = viewer.scene.pick(click.position);
-    if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
-      const entity = pickedObject.id;
-      pickedData.picked_entity = {
-        id: entity.id,
-        name: entity.name || null
-      };
-      
-      // Add entity properties if available
-      if (entity.properties) {
-        const props = {};
-        const propertyNames = entity.properties.propertyNames;
-        if (propertyNames && propertyNames.length > 0) {
-          propertyNames.forEach(name => {
-            try {
-              props[name] = entity.properties[name].getValue(viewer.clock.currentTime);
-            } catch (e) {
-              // Skip properties that can't be evaluated
+    try {
+      const pickedObject = viewer.scene.pick(click.position);
+      if (Cesium.defined(pickedObject) && Cesium.defined(pickedObject.id)) {
+        const entity = pickedObject.id;
+        pickedData.picked_entity = {
+          id: entity.id,
+          name: entity.name || null
+        };
+        
+        // Add entity properties if available
+        if (entity.properties) {
+          const props = {};
+          const propertyNames = entity.properties.propertyNames;
+          if (propertyNames && propertyNames.length > 0) {
+            propertyNames.forEach(name => {
+              try {
+                props[name] = entity.properties[name].getValue(viewer.clock.currentTime);
+              } catch (e) {
+                // Skip properties that can't be evaluated
+              }
+            });
+            if (Object.keys(props).length > 0) {
+              pickedData.picked_entity.properties = props;
             }
-          });
-          if (Object.keys(props).length > 0) {
-            pickedData.picked_entity.properties = props;
           }
         }
       }
+    } catch (error) {
+      console.warn('[CesiumWidget:ViewerInit] Error picking entity:', error);
     }
     
     sendInteractionEvent('left_click', pickedData);
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   handler.setInputAction((click) => {
+    if (isDestroyed || !viewer || !viewer.scene || !viewer.camera) return;
+    
     const pickedData = {};
     
     // Try to get picked position
-    const ray = viewer.camera.getPickRay(click.position);
-    const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
-    if (cartesian) {
-      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-      pickedData.picked_position = {
-        latitude: Cesium.Math.toDegrees(cartographic.latitude),
-        longitude: Cesium.Math.toDegrees(cartographic.longitude),
-        altitude: cartographic.height
-      };
+    try {
+      const ray = viewer.camera.getPickRay(click.position);
+      if (ray && viewer.scene.globe) {
+        const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+        if (cartesian) {
+          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          pickedData.picked_position = {
+            latitude: Cesium.Math.toDegrees(cartographic.latitude),
+            longitude: Cesium.Math.toDegrees(cartographic.longitude),
+            altitude: cartographic.height
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('[CesiumWidget:ViewerInit] Error picking position:', error);
     }
     
     sendInteractionEvent('right_click', pickedData);
