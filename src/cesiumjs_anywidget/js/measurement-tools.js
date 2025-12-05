@@ -5,6 +5,10 @@
  * height, and area measurements.
  */
 
+import { log, warn, error } from './logger.js';
+
+const PREFIX = 'Measurements';
+
 /**
  * Initialize measurement tools for a Cesium viewer
  * @param {Object} viewer - Cesium Viewer instance
@@ -13,7 +17,7 @@
  * @returns {Object} Measurement tools API
  */
 export function initializeMeasurementTools(viewer, model, container) {
-  console.log('[CesiumWidget:MeasurementTools] Initializing measurement tools');
+  log(PREFIX, 'Initializing measurement tools');
   const Cesium = window.Cesium;
 
   let measurementHandler = null;
@@ -256,7 +260,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   }
 
   function clearAllMeasurements() {
-    console.log('[CesiumWidget:MeasurementTools] Clearing all measurements');
+    log(PREFIX, 'Clearing all measurements');
     measurementState.entities.forEach(e => viewer.entities.remove(e));
     measurementState.labels.forEach(l => viewer.entities.remove(l));
     measurementState.polylines.forEach(p => viewer.entities.remove(p));
@@ -457,13 +461,13 @@ export function initializeMeasurementTools(viewer, model, container) {
     const editAltInput = document.getElementById('edit-alt');
 
     if (!applyBtn || !closeBtn || !editLonInput || !editLatInput || !editAltInput) {
-      console.warn("[CesiumWidget] Editor panel input elements not found in DOM");
+      warn(PREFIX, "Editor panel input elements not found in DOM");
     }
 
     if (applyBtn) {
       applyBtn.onclick = () => {
         if (!editLonInput || !editLatInput || !editAltInput) {
-          console.warn("[CesiumWidget] Editor input fields not available");
+          warn(PREFIX, "Editor input fields not available");
           return;
         }
         const lon = parseFloat(editLonInput.value);
@@ -690,11 +694,11 @@ export function initializeMeasurementTools(viewer, model, container) {
 
   function updateMeasurementsList() {
     const results = model.get("measurement_results") || [];
-    console.log('[CesiumWidget:MeasurementTools] Updating measurements list, count:', results.length);
+    log(PREFIX, 'Updating measurements list, count:', results.length);
     const listContent = document.getElementById("measurements-list-content");
 
     if (!listContent) {
-      console.warn("[CesiumWidget] Measurements list content element not found in DOM");
+      warn(PREFIX, "Measurements list content element not found in DOM");
       return;
     }
 
@@ -768,7 +772,7 @@ export function initializeMeasurementTools(viewer, model, container) {
           renameMeasurement(index, name);
         };
       } else {
-        console.warn(`[CesiumWidget] Rename button not found for measurement ${index}`);
+        warn(PREFIX, `Rename button not found for measurement ${index}`);
       }
     });
   }
@@ -1125,7 +1129,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   // ============= MODE MANAGEMENT =============
 
   function enableMeasurementMode(mode) {
-    console.log('[CesiumWidget:MeasurementTools] Enabling measurement mode:', mode);
+    log(PREFIX, 'Enabling measurement mode:', mode);
     if (measurementHandler) {
       measurementHandler.destroy();
       measurementHandler = null;
@@ -1352,21 +1356,21 @@ export function initializeMeasurementTools(viewer, model, container) {
 
   model.on("change:measurement_mode", () => {
     if (isDestroyed) {
-      console.log('[CesiumWidget:MeasurementTools] Skipping measurement_mode change - destroyed');
+      log(PREFIX, 'Skipping measurement_mode change - destroyed');
       return;
     }
     const mode = model.get("measurement_mode");
-    console.log('[CesiumWidget:MeasurementTools] Measurement mode changed:', mode);
+    log(PREFIX, 'Measurement mode changed:', mode);
     enableMeasurementMode(mode);
   });
 
   model.on("change:measurement_results", () => {
     if (isDestroyed) {
-      console.log('[CesiumWidget:MeasurementTools] Skipping measurement_results change - destroyed');
+      log(PREFIX, 'Skipping measurement_results change - destroyed');
       return;
     }
     const results = model.get("measurement_results") || [];
-    console.log('[CesiumWidget:MeasurementTools] Measurement results changed, count:', results.length);
+    log(PREFIX, 'Measurement results changed, count:', results.length);
     if (results.length === 0) {
       clearAllMeasurements();
     }
@@ -1376,7 +1380,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   model.on("change:load_measurements_trigger", () => {
     if (isDestroyed) return;
     const triggerData = model.get("load_measurements_trigger");
-    console.log('[CesiumWidget:MeasurementTools] Load measurements trigger:', triggerData);
+    log(PREFIX, 'Load measurements trigger:', triggerData);
     if (triggerData && triggerData.measurements) {
       loadAndDisplayMeasurements(triggerData.measurements);
       updateMeasurementsList();
@@ -1386,7 +1390,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   model.on("change:focus_measurement_trigger", () => {
     if (isDestroyed) return;
     const triggerData = model.get("focus_measurement_trigger");
-    console.log('[CesiumWidget:MeasurementTools] Focus measurement trigger:', triggerData);
+    log(PREFIX, 'Focus measurement trigger:', triggerData);
     if (triggerData && typeof triggerData.index === 'number') {
       focusOnMeasurement(triggerData.index);
     }
@@ -1395,7 +1399,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   model.on("change:show_measurement_tools", () => {
     if (isDestroyed) return;
     const show = model.get("show_measurement_tools");
-    console.log('[CesiumWidget:MeasurementTools] Show measurement tools:', show);
+    log(PREFIX, 'Show measurement tools:', show);
     toolbarDiv.style.display = show ? 'flex' : 'none';
     editorPanel.style.display = show ? editorPanel.style.display : 'none';
 
@@ -1409,7 +1413,7 @@ export function initializeMeasurementTools(viewer, model, container) {
   model.on("change:show_measurements_list", () => {
     if (isDestroyed) return;
     const show = model.get("show_measurements_list");
-    console.log('[CesiumWidget:MeasurementTools] Show measurements list:', show);
+    log(PREFIX, 'Show measurements list:', show);
     measurementsListPanel.style.display = show ? 'block' : 'none';
   });
 
@@ -1426,7 +1430,7 @@ export function initializeMeasurementTools(viewer, model, container) {
     enableMeasurementMode,
     clearAllMeasurements,
     destroy: () => {
-      console.log('[CesiumWidget:MeasurementTools] Destroying measurement tools');
+      log(PREFIX, 'Destroying measurement tools');
       isDestroyed = true;
       if (measurementHandler) {
         measurementHandler.destroy();
@@ -1435,7 +1439,7 @@ export function initializeMeasurementTools(viewer, model, container) {
       if (toolbarDiv.parentNode) {
         toolbarDiv.remove();
       }
-      console.log('[CesiumWidget:MeasurementTools] Measurement tools destroyed');
+      log(PREFIX, 'Measurement tools destroyed');
     }
   };
 }

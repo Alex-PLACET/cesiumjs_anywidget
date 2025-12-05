@@ -130,6 +130,17 @@ class CesiumWidget(anywidget.AnyWidget):
         default_value=True, help="Show or hide measurements list panel"
     ).tag(sync=True)
 
+    # Debug mode for JavaScript logging
+    debug_mode = traitlets.Bool(
+        default_value=False, help="Enable or disable JavaScript console logging"
+    ).tag(sync=True)
+
+    # Camera synchronization callbacks
+    camera_sync_enabled = traitlets.Bool(
+        default_value=False,
+        help="Enable or disable camera position synchronization callbacks"
+    ).tag(sync=True)
+
     def __init__(self, **kwargs):
         """Initialize the CesiumWidget.
 
@@ -773,6 +784,59 @@ class CesiumWidget(anywidget.AnyWidget):
     def hide_list(self):
         """Hide the measurements list panel."""
         self.show_measurements_list = False
+
+    def enable_debug(self):
+        """Enable JavaScript console logging for debugging.
+        
+        When enabled, detailed logs will be printed to the browser console
+        showing widget initialization, data loading, camera events, etc.
+        
+        Examples
+        --------
+        >>> widget.enable_debug()  # Enable logging
+        >>> # ... interact with widget, check browser console for logs
+        >>> widget.disable_debug()  # Disable logging when done
+        """
+        self.debug_mode = True
+
+    def disable_debug(self):
+        """Disable JavaScript console logging.
+        
+        Examples
+        --------
+        >>> widget.disable_debug()
+        """
+        self.debug_mode = False
+
+    def enable_camera_sync(self):
+        """Enable camera synchronization callbacks.
+        
+        When enabled, camera position changes in the Cesium viewer will be
+        synchronized back to the Python model (latitude, longitude, altitude,
+        heading, pitch, roll properties).
+        
+        Note: This is disabled by default to avoid unnecessary updates when
+        you don't need to track camera position in Python.
+        
+        Examples
+        --------
+        >>> widget.enable_camera_sync()
+        >>> # Move camera in the viewer...
+        >>> print(widget.latitude, widget.longitude)  # Updated values
+        """
+        self.camera_sync_enabled = True
+
+    def disable_camera_sync(self):
+        """Disable camera synchronization callbacks.
+        
+        When disabled, camera movements in the viewer will not update the
+        Python model properties. This is the default state.
+        
+        Examples
+        --------
+        >>> widget.disable_camera_sync()
+        """
+        self.camera_sync_enabled = False
 
     def set_atmosphere(self, 
                       brightness_shift=None, 
