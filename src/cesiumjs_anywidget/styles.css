@@ -1,0 +1,55 @@
+/**
+ * CesiumJS Anywidget Styles
+ * 
+ * Basic styling for the CesiumJS widget container
+ */
+
+/* Import CesiumJS base styles from official CDN */
+@import url("https://cesium.com/downloads/cesiumjs/releases/1.137/Build/Cesium/Widgets/widgets.css");
+
+/* Ensure the widget container has proper dimensions and overflow handling */
+.cesium-widget {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ensure Cesium viewer fills the container */
+.cesium-viewer {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Remove default margins from the widget */
+.cesium-widget-container {
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure proper canvas sizing */
+.cesium-viewer canvas {
+  display: block;
+}
+
+/* Custom scrollbar styling for measurement panels */
+.measurement-panel-scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.measurement-panel-scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.measurement-panel-scrollable::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.measurement-panel-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.measurement-panel-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
