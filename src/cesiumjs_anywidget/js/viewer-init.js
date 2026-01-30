@@ -334,6 +334,136 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     }
   });
 
+  // ============= Clock/Timeline Initialization and Listeners =============
+
+  // Initialize clock with current_time if provided
+  const initialTime = model.get("current_time");
+  if (initialTime && viewer.clock) {
+    try {
+      const julianDate = Cesium.JulianDate.fromIso8601(initialTime);
+      viewer.clock.currentTime = julianDate;
+      viewer.clock.startTime = julianDate.clone();
+      viewer.clock.stopTime = Cesium.JulianDate.addDays(julianDate.clone(), 1, new Cesium.JulianDate());
+      log(PREFIX, 'Clock initialized with time:', initialTime);
+    } catch (err) {
+      warn(PREFIX, 'Failed to parse initial time:', initialTime, err);
+    }
+  }
+
+  // Initialize clock multiplier
+  const initialMultiplier = model.get("clock_multiplier");
+  if (initialMultiplier !== undefined && viewer.clock) {
+    viewer.clock.multiplier = initialMultiplier;
+    log(PREFIX, 'Clock multiplier initialized:', initialMultiplier);
+  }
+
+  // Initialize animation state
+  const initialAnimate = model.get("should_animate");
+  if (initialAnimate !== undefined && viewer.clock) {
+    viewer.clock.shouldAnimate = initialAnimate;
+    log(PREFIX, 'Clock animation initialized:', initialAnimate);
+  }
+
+  // Listen for current_time changes
+  model.on("change:current_time", () => {
+    if (isDestroyed) return;
+    if (!viewer || !viewer.clock) return;
+    
+    const timeStr = model.get("current_time");
+    if (!timeStr) return;
+    
+    try {
+      const julianDate = Cesium.JulianDate.fromIso8601(timeStr);
+      viewer.clock.currentTime = julianDate;
+      log(PREFIX, 'Clock time updated:', timeStr);
+    } catch (err) {
+      warn(PREFIX, 'Failed to parse time:', timeStr, err);
+    }
+  });
+
+  // Listen for clock_multiplier changes
+  model.on("change:clock_multiplier", () => {
+    if (isDestroyed) return;
+    if (!viewer || !viewer.clock) return;
+    
+    const multiplier = model.get("clock_multiplier");
+    if (multiplier !== undefined) {
+      viewer.clock.multiplier = multiplier;
+      log(PREFIX, 'Clock multiplier updated:', multiplier);
+    }
+  });
+
+  // Listen for should_animate changes
+  model.on("change:should_animate", () => {
+    if (isDestroyed) return;
+    if (!viewer || !viewer.clock) return;
+    
+    const shouldAnimate = model.get("should_animate");
+    if (shouldAnimate !== undefined) {
+      viewer.clock.shouldAnimate = shouldAnimate;
+      log(PREFIX, 'Clock animation updated:', shouldAnimate);
+    }
+  });
+
+  // Listen for clock commands
+  model.on("change:clock_command", () => {
+    if (isDestroyed) return;
+    if (!viewer || !viewer.clock) return;
+    
+    const command = model.get("clock_command");
+    if (!command || !command.command) return;
+    
+    log(PREFIX, 'Clock command received:', command.command);
+    
+    switch (command.command) {
+      case 'setTime':
+        if (command.time) {
+          try {
+            const julianDate = Cesium.JulianDate.fromIso8601(command.time);
+            viewer.clock.currentTime = julianDate;
+            log(PREFIX, 'Clock time set via command:', command.time);
+          } catch (err) {
+            warn(PREFIX, 'Failed to parse time in command:', command.time, err);
+          }
+        }
+        break;
+        
+      case 'play':
+        viewer.clock.shouldAnimate = true;
+        log(PREFIX, 'Clock animation started');
+        break;
+        
+      case 'pause':
+        viewer.clock.shouldAnimate = false;
+        log(PREFIX, 'Clock animation paused');
+        break;
+        
+      case 'setMultiplier':
+        if (command.multiplier !== undefined) {
+          viewer.clock.multiplier = command.multiplier;
+          log(PREFIX, 'Clock multiplier set via command:', command.multiplier);
+        }
+        break;
+        
+      case 'setRange':
+        if (command.startTime && command.stopTime) {
+          try {
+            const startDate = Cesium.JulianDate.fromIso8601(command.startTime);
+            const stopDate = Cesium.JulianDate.fromIso8601(command.stopTime);
+            viewer.clock.startTime = startDate;
+            viewer.clock.stopTime = stopDate;
+            log(PREFIX, 'Clock range set via command:', command.startTime, 'to', command.stopTime);
+          } catch (err) {
+            warn(PREFIX, 'Failed to parse time range in command:', err);
+          }
+        }
+        break;
+        
+      default:
+        warn(PREFIX, 'Unknown clock command:', command.command);
+    }
+  });
+
   // CZML entity update listener
   model.on("change:czml_entity_update", () => {
     if (isDestroyed) return;

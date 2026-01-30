@@ -123,6 +123,27 @@ class CesiumWidget(anywidget.AnyWidget):
         help="SkyBox rendering settings (show, sources for cube map faces)"
     ).tag(sync=True)
 
+    # Clock/Timeline configuration
+    current_time = traitlets.Unicode(
+        "",
+        help="Current time in ISO 8601 format (e.g., '2023-08-01T14:30:00Z')"
+    ).tag(sync=True)
+    
+    clock_multiplier = traitlets.Float(
+        1.0,
+        help="Animation speed multiplier (1.0 = real-time, 60.0 = 60x speed)"
+    ).tag(sync=True)
+    
+    should_animate = traitlets.Bool(
+        False,
+        help="Whether the clock should animate (play/pause)"
+    ).tag(sync=True)
+    
+    clock_command = traitlets.Dict(
+        default_value={},
+        help="Clock control commands (setTime, play, pause, setMultiplier)"
+    ).tag(sync=True)
+
     # Camera commands (for advanced camera operations)
     camera_command = traitlets.Dict(
         default_value={},
@@ -1278,9 +1299,12 @@ class CesiumWidget(anywidget.AnyWidget):
         clicks, timeline scrubbing, etc.) with a dictionary containing:
         
         - type: Interaction type ('camera_move', 'left_click', 'right_click', 'timeline_scrub')
-        - timestamp: ISO 8601 timestamp when interaction occurred
+        - timestamp: ISO 8601 timestamp when interaction occurred (system time)
         - camera: Camera state (latitude, longitude, altitude, heading, pitch, roll)
-        - clock: Clock state (current_time, multiplier, is_animating) if timeline enabled
+        - clock: Cesium clock state with:
+            - current_time: ISO 8601 timestamp from Cesium's clock (simulation time)
+            - multiplier: Clock speed multiplier
+            - is_animating: Whether clock is currently animating
         - picked_position: Coordinates of clicked location (if applicable)
         - picked_entity: Information about clicked entity (if applicable)
         
@@ -1294,6 +1318,8 @@ class CesiumWidget(anywidget.AnyWidget):
         >>> def handle_interaction(event):
         ...     print(f"Interaction: {event['type']}")
         ...     print(f"Camera at: {event['camera']['latitude']}, {event['camera']['longitude']}")
+        ...     if event['clock']:
+        ...         print(f"Cesium time: {event['clock']['current_time']}")
         ...     if 'picked_position' in event:
         ...         print(f"Clicked: {event['picked_position']}")
         >>> 
@@ -1482,6 +1508,124 @@ class CesiumWidget(anywidget.AnyWidget):
         
         self.observe(wrapper, names='point_picking_event')
         return wrapper
+
+    # ============= Clock/Timeline Control Methods =============
+
+    def set_time(self, time):
+        """Set the current time on the Cesium timeline.
+
+        Parameters
+        ----------
+        time : str or datetime
+            Time to set. Can be:
+            - ISO 8601 string (e.g., '2023-08-01T14:30:00Z')
+            - datetime object (will be converted to ISO 8601)
+
+        Examples
+        --------
+        >>> from datetime import datetime
+        >>> widget.set_time('2023-08-01T14:30:00Z')
+        >>> widget.set_time(datetime(2023, 8, 1, 14, 30))
+        """
+        from datetime import datetime as dt
+        
+        if isinstance(time, dt):
+            time_str = time.isoformat() + 'Z'
+        else:
+            time_str = str(time)
+        
+        self.current_time = time_str
+        self.clock_command = {
+            'command': 'setTime',
+            'time': time_str,
+            'timestamp': __import__('time').time()
+        }
+
+    def play(self):
+        """Start the timeline animation.
+
+        Examples
+        --------
+        >>> widget.play()
+        """
+        self.should_animate = True
+        self.clock_command = {
+            'command': 'play',
+            'timestamp': __import__('time').time()
+        }
+
+    def pause(self):
+        """Pause the timeline animation.
+
+        Examples
+        --------
+        >>> widget.pause()
+        """
+        self.should_animate = False
+        self.clock_command = {
+            'command': 'pause',
+            'timestamp': __import__('time').time()
+        }
+
+    def set_speed(self, multiplier: float = 1.0):
+        """Set the animation speed multiplier.
+
+        Parameters
+        ----------
+        multiplier : float, optional
+            Speed multiplier (default: 1.0)
+            - 1.0 = real-time
+            - 60.0 = 60x speed (1 second = 1 minute)
+            - 0.5 = half speed
+
+        Examples
+        --------
+        >>> widget.set_speed(60)  # 60x speed
+        >>> widget.set_speed(0.5)  # Half speed
+        """
+        self.clock_multiplier = multiplier
+        self.clock_command = {
+            'command': 'setMultiplier',
+            'multiplier': multiplier,
+            'timestamp': __import__('time').time()
+        }
+
+    def set_clock_range(self, start_time, stop_time):
+        """Set the time range for the clock/timeline.
+
+        Parameters
+        ----------
+        start_time : str or datetime
+            Start time of the range
+        stop_time : str or datetime
+            Stop time of the range
+
+        Examples
+        --------
+        >>> from datetime import datetime
+        >>> widget.set_clock_range(
+        ...     datetime(2023, 8, 1, 0, 0),
+        ...     datetime(2023, 8, 2, 0, 0)
+        ... )
+        """
+        from datetime import datetime as dt
+        
+        if isinstance(start_time, dt):
+            start_str = start_time.isoformat() + 'Z'
+        else:
+            start_str = str(start_time)
+            
+        if isinstance(stop_time, dt):
+            stop_str = stop_time.isoformat() + 'Z'
+        else:
+            stop_str = str(stop_time)
+        
+        self.clock_command = {
+            'command': 'setRange',
+            'startTime': start_str,
+            'stopTime': stop_str,
+            'timestamp': __import__('time').time()
+        }
 
     def get_picked_points_as_correspondences(self):
         """Convert picked points to CorrespondencePoint objects.
