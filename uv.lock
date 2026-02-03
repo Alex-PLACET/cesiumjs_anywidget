@@ -175,7 +175,7 @@ wheels = [
 
 [[package]]
 name = "cesiumjs-anywidget"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "anywidget" },
@@ -188,8 +188,6 @@ dev = [
     { name = "huggingface-hub" },
     { name = "ipycanvas" },
     { name = "jupyterlab" },
-    { name = "notebook" },
-    { name = "numpy" },
     { name = "opencv-python" },
     { name = "piexif" },
     { name = "pillow" },
@@ -208,8 +206,6 @@ requires-dist = [
     { name = "huggingface-hub", marker = "extra == 'dev'", specifier = ">=1.3.4" },
     { name = "ipycanvas", marker = "extra == 'dev'", specifier = ">=0.14.3" },
     { name = "jupyterlab", marker = "extra == 'dev'", specifier = ">=4.3.8" },
-    { name = "notebook", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "numpy", marker = "extra == 'dev'", specifier = ">=1.24.4" },
     { name = "opencv-python", marker = "extra == 'dev'", specifier = ">=4.11.0.86" },
     { name = "piexif", marker = "extra == 'dev'", specifier = ">=1.1.3" },
     { name = "pillow", marker = "extra == 'dev'", specifier = ">=10.4.0" },
@@ -1137,22 +1133,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/83/f8/51569ac65d696c8ecbee95938f89d4abf00f47d58d48f6fbabfe8f0baefe/nest_asyncio-1.6.0.tar.gz", hash = "sha256:6f172d5449aca15afd6c646851f4e31e02c598d553a667e38cafa997cfec55fe", size = 7418, upload-time = "2024-01-21T14:25:19.227Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl", hash = "sha256:87af6efd6b5e897c81050477ef65c62e2b2f35d51703cae01aff2905b1852e1c", size = 5195, upload-time = "2024-01-21T14:25:17.223Z" },
-]
-
-[[package]]
-name = "notebook"
-version = "7.5.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "jupyter-server" },
-    { name = "jupyterlab" },
-    { name = "jupyterlab-server" },
-    { name = "notebook-shim" },
-    { name = "tornado" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b8/cb/cc7f4df5cee315dd126a47eb60890690a0438d5e0dd40c32d60ce16de377/notebook-7.5.3.tar.gz", hash = "sha256:393ceb269cf9fdb02a3be607a57d7bd5c2c14604f1818a17dbeb38e04f98cbfa", size = 14073140, upload-time = "2026-01-26T07:28:36.605Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/98/9286e7f35e5584ebb79f997f2fb0cb66745c86f6c5fccf15ba32aac5e908/notebook-7.5.3-py3-none-any.whl", hash = "sha256:c997bfa1a2a9eb58c9bbb7e77d50428befb1033dd6f02c482922e96851d67354", size = 14481744, upload-time = "2026-01-26T07:28:31.867Z" },
 ]
 
 [[package]]
