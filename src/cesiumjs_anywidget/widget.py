@@ -1338,44 +1338,49 @@ class CesiumWidget(anywidget.AnyWidget):
 
         This is useful for troubleshooting widget initialization issues.
         """
-        logger.info("=== CesiumWidget Debug Info ===")
-        logger.info("Widget class: %s", self.__class__.__name__)
-        logger.info("Anywidget version: %s", anywidget.__version__)
+        def emit(message: str, *args):
+            line = message % args if args else message
+            print(line)
+            logger.info(message, *args)
+
+        emit("=== CesiumWidget Debug Info ===")
+        emit("Widget class: %s", self.__class__.__name__)
+        emit("Anywidget version: %s", anywidget.__version__)
 
         # Check file paths (note: after widget instantiation, _esm and _css contain file contents)
         esm_path = pathlib.Path(__file__).parent / "index.js"
         css_path = pathlib.Path(__file__).parent / "styles.css"
 
-        logger.info("JavaScript file:")
-        logger.info("  Path: %s", esm_path)
-        logger.info("  Exists: %s", esm_path.exists())
+        emit("JavaScript file:")
+        emit("  Path: %s", esm_path)
+        emit("  Exists: %s", esm_path.exists())
         if esm_path.exists():
-            logger.info("  Size: %d bytes", esm_path.stat().st_size)
+            emit("  Size: %d bytes", esm_path.stat().st_size)
         elif isinstance(self._esm, str):
-            logger.info("  Content loaded: %d chars", len(self._esm))
+            emit("  Content loaded: %d chars", len(self._esm))
 
-        logger.info("CSS file:")
-        logger.info("  Path: %s", css_path)
-        logger.info("  Exists: %s", css_path.exists())
+        emit("CSS file:")
+        emit("  Path: %s", css_path)
+        emit("  Exists: %s", css_path.exists())
         if css_path.exists():
-            logger.info("  Size: %d bytes", css_path.stat().st_size)
+            emit("  Size: %d bytes", css_path.stat().st_size)
         elif isinstance(self._css, str):
-            logger.info("  Content loaded: %d chars", len(self._css))
+            emit("  Content loaded: %d chars", len(self._css))
 
         # Show current state
-        logger.info("Current state:")
-        logger.info("  Position: (%.4f°, %.4f°)", self.latitude, self.longitude)
-        logger.info("  Altitude: %.2fm", self.altitude)
-        logger.info("  Height: %s", self.height)
-        logger.info("  Terrain: %s", self.enable_terrain)
-        logger.info("  Lighting: %s", self.enable_lighting)
+        emit("Current state:")
+        emit("  Position: (%.4f°, %.4f°)", self.latitude, self.longitude)
+        emit("  Altitude: %.2fm", self.altitude)
+        emit("  Height: %s", self.height)
+        emit("  Terrain: %s", self.enable_terrain)
+        emit("  Lighting: %s", self.enable_lighting)
 
-        logger.info("💡 Debugging tips:")
-        logger.info("  1. Open browser DevTools (F12) and check the Console tab for errors")
-        logger.info("  2. Check Network tab to see if CesiumJS CDN loads successfully")
-        logger.info("  3. Try: widget = CesiumWidget(enable_terrain=False) to avoid async terrain loading")
-        logger.info("  4. Ensure you're using JupyterLab 4.0+ or Jupyter Notebook 7.0+")
-        logger.info("  5. Check if anywidget is properly installed: pip show anywidget")
+        emit("💡 Debugging tips:")
+        emit("  1. Open browser DevTools (F12) and check the Console tab for errors")
+        emit("  2. Check Network tab to see if CesiumJS CDN loads successfully")
+        emit("  3. Try: widget = CesiumWidget(enable_terrain=False) to avoid async terrain loading")
+        emit("  4. Ensure you're using JupyterLab 4.0+ or Jupyter Notebook 7.0+")
+        emit("  5. Check if anywidget is properly installed: pip show anywidget")
 
     # ============= Point Picking Methods for Camera Calibration =============
 

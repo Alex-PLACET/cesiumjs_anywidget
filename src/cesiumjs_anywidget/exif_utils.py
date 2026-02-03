@@ -25,7 +25,22 @@ def _convert_to_degrees(value) -> float:
     d = float(value.values[0].num) / float(value.values[0].den)
     m = float(value.values[1].num) / float(value.values[1].den)
     s = float(value.values[2].num) / float(value.values[2].den)
-    
+
+    # Normalize malformed DMS values from some writers
+    # Some encoders store seconds as total arc-seconds * 60 (e.g., 1425 instead of 23.75)
+    if s >= 60 and m < 60:
+        s = s / 60.0
+
+    if s >= 60:
+        carry = int(s // 60)
+        s = s - (carry * 60)
+        m += carry
+
+    if m >= 60:
+        carry = int(m // 60)
+        m = m - (carry * 60)
+        d += carry
+
     return d + (m / 60.0) + (s / 3600.0)
 
 

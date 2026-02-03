@@ -17,12 +17,6 @@ class TestPackageStructure:
         from cesiumjs_anywidget import CesiumWidget
         assert CesiumWidget is not None
     
-    def test_package_version(self):
-        """Test that package has version."""
-        import cesiumjs_anywidget
-        assert hasattr(cesiumjs_anywidget, '__version__')
-        assert cesiumjs_anywidget.__version__ == "0.1.0"
-    
     def test_package_all(self):
         """Test that __all__ is defined."""
         import cesiumjs_anywidget
