@@ -8,6 +8,7 @@ dependencies:
   - sidecar
   - numpy
   - scipy
+  - pillow
   - pip: # List pure Python packages from PyPi here
     - cesiumjs-anywidget
     - huggingface_hub

@@ -37,7 +37,6 @@ notebook_examples = [
     "opencv-python>=4.11.0.86",
     "piexif>=1.1.3",
     "pyarrow>=23.0.0",
-
     "sidecar>=0.8.0",
 ]
 
