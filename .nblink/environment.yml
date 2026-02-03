@@ -1,0 +1,12 @@
+name: cesiumjs-anywidget-examples
+channels:
+  - emscripten-forge
+  - conda-forge
+dependencies:
+  - xeus-python # A Jupyter kernel for Python
+  - pyarrow
+  - sidecar
+  - pip: # List pure Python packages from PyPi here
+    - cesiumjs-anywidget
+    - huggingface_hub
+    
