@@ -8,9 +8,7 @@ version = "0.7.0"
 description = "A Jupyter widget for CesiumJS 3D globe visualization using anywidget"
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [
-    { name = "Alexis Placet" }
-]
+authors = [{ name = "Alexis Placet" }]
 requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -25,21 +23,21 @@ dependencies = [
     "anywidget>=0.9.0",
     "traitlets>=5.0.0",
     "pygeodesy>=25.11.5",
+    "numpy>=2.4.0",
+    "scipy>=1.17.0",
 ]
 
-[project.optional-dependencies]
-dev = [
+[dependency-groups]
+dev = ["pytest-cov>=4.0.0", "pytest>=7.0.0"]
+notebook_examples = [
     "exifread>=3.5.1",
     "huggingface_hub>=1.3.4",
     "ipycanvas>=0.14.3",
     "jupyterlab>=4.3.8",
     "opencv-python>=4.11.0.86",
     "piexif>=1.1.3",
-    "pillow>=10.4.0",
     "pyarrow>=23.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest>=7.0.0",
-    "scipy>=1.10.1",
+
     "sidecar>=0.8.0",
 ]
 
@@ -49,9 +47,7 @@ Repository = "https://github.com/Alex-PLACET/cesiumjs_anywidget"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cesiumjs_anywidget"]
-exclude = [
-    "src/cesiumjs_anywidget/js",
-]
+exclude = ["src/cesiumjs_anywidget/js"]
 force-include = { "src/cesiumjs_anywidget/index.js" = "cesiumjs_anywidget/index.js" }
 
 [tool.hatch.build.targets.sdist]
@@ -92,10 +88,7 @@ markers = [
 
 [tool.coverage.run]
 source = ["src/cesiumjs_anywidget"]
-omit = [
-    "*/tests/*",
-    "*/__pycache__/*",
-]
+omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]
 exclude_lines = [

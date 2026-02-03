@@ -7,7 +7,6 @@ The EGM96 15-minute grid data is automatically downloaded from the internet on
 first use and cached locally. You can customize the data source URL if needed.
 """
 
-import os
 import tarfile
 import urllib.request
 import zipfile

@@ -4,7 +4,7 @@ import exifread
 from datetime import datetime
 from typing import Optional, Dict, Any, Tuple
 from pathlib import Path
-from .logger import get_logger
+from ...src.cesiumjs_anywidget.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -9,7 +9,6 @@ from .geoid import (
     set_geoid_data_url,
 )
 from .logger import get_logger, set_log_level
-from .exif_utils import extract_all_metadata, extract_gps_data, extract_datetime
 
 __version__ = "0.6.0"
 __all__ = [
@@ -21,7 +20,4 @@ __all__ = [
     "set_geoid_data_url",
     "get_logger",
     "set_log_level",
-    "extract_all_metadata",
-    "extract_gps_data",
-    "extract_datetime",
 ]
