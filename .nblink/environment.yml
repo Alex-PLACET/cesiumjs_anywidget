@@ -6,6 +6,8 @@ dependencies:
   - xeus-python # A Jupyter kernel for Python
   - pyarrow
   - sidecar
+  - numpy
+  - scipy
   - pip: # List pure Python packages from PyPi here
     - cesiumjs-anywidget
     - huggingface_hub
