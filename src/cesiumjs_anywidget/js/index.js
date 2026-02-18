@@ -5,14 +5,14 @@
  * and measurement tools by composing specialized modules.
  */
 
-import { loadCesiumJS, createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles } from './viewer-init.js';
+import { loadCesiumJS, createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles, patchWorkerForCSP, CESIUM_CDN_VERSION } from './viewer-init.js';
 import { initializeCameraSync } from './camera-sync.js';
 import { initializeMeasurementTools } from './measurement-tools.js';
 import { initializePointPicking } from './point-picking.js';
 import { setDebugMode, log, warn, error } from './logger.js';
 
 // Configure Cesium base URL for assets before loading
-window.CESIUM_BASE_URL = "https://cesium.com/downloads/cesiumjs/releases/1.137/Build/Cesium/";
+window.CESIUM_BASE_URL = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/`;
 
 /**
  * Render function called by anywidget
@@ -30,6 +30,10 @@ async function render({ model, el }) {
   });
 
   log('Main', 'Starting render');
+
+  // Patch Worker constructor so Cesium's CDN workers satisfy `worker-src blob:`
+  // CSP (required in JupyterLite and other environments with strict CSP).
+  patchWorkerForCSP();
   
   // Dynamically load CesiumJS from CDN
   log('Main', 'Loading CesiumJS...');

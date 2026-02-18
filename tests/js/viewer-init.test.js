@@ -2,6 +2,7 @@
  * Tests for viewer initialization module
  */
 import { jest, describe, it, beforeEach, afterEach, expect } from '@jest/globals';
+import { CESIUM_CDN_VERSION } from '../../src/cesiumjs_anywidget/js/viewer-init.js';
 
 describe('Viewer Initialization Module', () => {
   let mockContainer;
@@ -97,7 +98,7 @@ describe('Viewer Initialization Module', () => {
         }
         
         const script = document.createElement('script');
-        script.src = 'https://cesium.com/downloads/cesiumjs/releases/1.137/Build/Cesium/Cesium.js';
+        script.src = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/Cesium.js`;
         
         await new Promise((resolve) => {
           script.onload = () => {

@@ -11,9 +11,11 @@ const PREFIX = 'ViewerInit';
 
 // ============= CONSTANTS =============
 
+export const CESIUM_CDN_VERSION = '1.138';
+
 const CONSTANTS = {
   // CesiumJS CDN
-  CESIUM_CDN_VERSION: '1.137',
+  CESIUM_CDN_VERSION,
   
   // Interaction Timing
   TIMELINE_SCRUB_DEBOUNCE_MS: 500,
@@ -22,6 +24,45 @@ const CONSTANTS = {
   GEOJSON_STROKE_WIDTH: 3,
   GEOJSON_FILL_ALPHA: 0.5,
 };
+
+/**
+ * Patch the global Worker constructor to wrap cross-origin URLs in blob: URLs.
+ *
+ * JupyterLite (and similar environments) enforce a CSP of the form
+ *   worker-src 'self' blob:
+ * which means workers created directly from a CDN URL (e.g.
+ * https://cesium.com/.../Workers/createVerticesFromHeightmap.js) are blocked.
+ *
+ * This patch intercepts those URLs and produces a tiny blob script that calls
+ * importScripts(<original-url>), converting the origin to blob: which is
+ * explicitly allowed.  importScripts() inside a worker is governed by
+ * script-src, not worker-src, so it still reaches the CDN.
+ *
+ * Must be called before loading CesiumJS.
+ */
+export function patchWorkerForCSP() {
+  if (typeof window === 'undefined' || !window.Worker) return;
+  if (window.__workerCSPPatched) return; // avoid double-patching
+
+  const OriginalWorker = window.Worker;
+  const origin = window.location.origin;
+
+  function PatchedWorker(url, options) {
+    if (typeof url === 'string' && url.startsWith('http') && !url.startsWith(origin)) {
+      const blob = new Blob(
+        [`importScripts('${url}')`],
+        { type: 'application/javascript' }
+      );
+      url = URL.createObjectURL(blob);
+    }
+    return new OriginalWorker(url, options);
+  }
+
+  PatchedWorker.prototype = OriginalWorker.prototype;
+  window.Worker = PatchedWorker;
+  window.__workerCSPPatched = true;
+  log(PREFIX, 'Worker patched for CSP blob: compatibility');
+}
 
 /**
  * Load CesiumJS library dynamically if not already loaded
@@ -34,8 +75,18 @@ export async function loadCesiumJS() {
     return window.Cesium;
   }
 
+  // Inject Cesium CSS link if not already present
+  const cesiumCssId = 'cesium-widgets-css';
+  if (!document.getElementById(cesiumCssId)) {
+    const link = document.createElement('link');
+    link.id = cesiumCssId;
+    link.rel = 'stylesheet';
+    link.href = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/Widgets/widgets.css`;
+    document.head.appendChild(link);
+  }
+
   const script = document.createElement('script');
-  script.src = `https://cesium.com/downloads/cesiumjs/releases/${CONSTANTS.CESIUM_CDN_VERSION}/Build/Cesium/Cesium.js`;
+  script.src = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/Cesium.js`;
   log(PREFIX, 'Loading CesiumJS from CDN...');
 
   await new Promise((resolve, reject) => {
