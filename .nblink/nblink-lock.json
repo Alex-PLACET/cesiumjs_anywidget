@@ -1,26 +1,22 @@
 {
+  "id": "6244904076358978",
   "lockVersion": "1.0.3",
   "platform": "emscripten-wasm32",
   "specs": [
     "xeus-python",
     "pyarrow",
+    "huggingface_hub",
     "sidecar",
-    "numpy",
-    "scipy",
-    "pillow"
+    "scipy"
   ],
   "channels": [
-    "emscripten-forge",
+    "https://repo.prefix.dev/emscripten-forge-4x",
     "conda-forge"
   ],
   "channelInfo": {
-    "emscripten-forge": [
+    "https://repo.prefix.dev/emscripten-forge-4x": [
       {
-        "url": "https://prefix.dev/emscripten-forge-dev",
-        "protocol": "https"
-      },
-      {
-        "url": "https://repo.prefix.dev/emscripten-forge-dev",
+        "url": "https://repo.prefix.dev/emscripten-forge-4x",
         "protocol": "https"
       }
     ],
@@ -36,38 +32,110 @@
     ]
   },
   "packages": {
-    "pyarrow-19.0.1-np22py313hf730d9a_0.conda": {
-      "name": "pyarrow",
-      "build": "np22py313hf730d9a_0",
-      "version": "19.0.1",
-      "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
-      "hash": {
-        "sha256": "22c33f3a25f13dee7ae86525fb984e2b1dea120d96e482907f86dc1488f1c8be"
-      },
-      "size": 12950207
-    },
-    "xeus-python-0.17.6-py313h027658c_3.tar.bz2": {
+    "xeus-python-0.17.6-py313h6852881_2.tar.bz2": {
       "name": "xeus-python",
-      "build": "py313h027658c_3",
+      "build": "py313h6852881_2",
       "version": "0.17.6",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "92394029d395124dca27d7be2a1742650f1e15bd9dea304e8407f33f22ceb308"
+        "sha256": "c65790f1ada775b4147df2f758591ee6b4ed339e94f209ef1526297bc6dbafe5"
       },
-      "size": 5083856
+      "size": 5099613
     },
-    "xeus-5.2.6-h2072262_0.tar.bz2": {
-      "name": "xeus",
-      "build": "h2072262_0",
-      "version": "5.2.6",
+    "pyarrow-23.0.0-np23py313h6ce19a3_4.tar.bz2": {
+      "name": "pyarrow",
+      "build": "np23py313h6ce19a3_4",
+      "version": "23.0.0",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "92b87c1993283014d660b67020e70b1d8fcaa5e80aa079df1e9999633eca6cf9"
+        "md5": "fbb418489f72c0aef2596c4722178822",
+        "sha256": "e0dce220dc1f432ae4fd2a5d0012729800ff6caca08ce67521d1151cf044d8d4"
       },
-      "size": 379059
+      "size": 11963419
+    },
+    "r-base-abi-4.5.2-h267e887_1.tar.bz2": {
+      "name": "r-base-abi",
+      "build": "h267e887_1",
+      "version": "4.5.2",
+      "subdir": "noarch",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "3a59f65f3cd6d8c0bf53ce9f678536e741ce4240b3222edf3cd0c647ee63d15b"
+      },
+      "size": 2855
+    },
+    "arrow-cpp-compute-23.0.0-np23py313hf4f1a80_4.tar.bz2": {
+      "name": "arrow-cpp-compute",
+      "build": "np23py313hf4f1a80_4",
+      "version": "23.0.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "1514acb258b598b52744206cf44aa983",
+        "sha256": "e18b1266aaa38b3bbd46c832e9e37afbcc7a13b26abcf77502f256a8b1e5c9cb"
+      },
+      "size": 3466474
+    },
+    "arrow-cpp-parquet-23.0.0-np23py313hf4f1a80_4.tar.bz2": {
+      "name": "arrow-cpp-parquet",
+      "build": "np23py313hf4f1a80_4",
+      "version": "23.0.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "6dcfad93617eefbeb89d1100a9dd995f",
+        "sha256": "0b356f958c30582cce253f45129b1c2c6f1fc8da90424312c5b4bf21d8465fbf"
+      },
+      "size": 1590488
+    },
+    "arrow-cpp-dataset-23.0.0-np23py313hf4f1a80_4.tar.bz2": {
+      "name": "arrow-cpp-dataset",
+      "build": "np23py313hf4f1a80_4",
+      "version": "23.0.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "2762b01153e960bea4377e72ba799fe2",
+        "sha256": "e12422b5fa150f00287c0223836af27588f0141e48c64f5084d8bddc9922fdfd"
+      },
+      "size": 896747
+    },
+    "arrow-cpp-acero-23.0.0-np23py313hf4f1a80_4.tar.bz2": {
+      "name": "arrow-cpp-acero",
+      "build": "np23py313hf4f1a80_4",
+      "version": "23.0.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "b4d6d0d8c24307f06d45e2f7c8da3551",
+        "sha256": "23c639067d4e854f0dc6cd64ec2023bfd44b270dce9a37afdf92d319358f482e"
+      },
+      "size": 852455
+    },
+    "libffi-3.4.6-hb2bca66_0.tar.bz2": {
+      "name": "libffi",
+      "build": "hb2bca66_0",
+      "version": "3.4.6",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "154d84869cf883de3f8b362dcb7e06e6f54864e8dcc8c5b79575f5cbcf6b6e45"
+      },
+      "size": 22858
+    },
+    "huggingface_hub-0.31.4-pyhd8ed1ab_0.conda": {
+      "name": "huggingface_hub",
+      "build": "pyhd8ed1ab_0",
+      "version": "0.31.4",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "d92d502ff13c190010694d64375959b9",
+        "sha256": "c472d3f3607a313e75ee45501455b69d1124ac9f00b2bdb4983048da19c6d375"
+      },
+      "size": 302452
     },
     "sidecar-0.8.0-pyhd8ed1ab_0.conda": {
       "name": "sidecar",
@@ -81,49 +149,29 @@
       },
       "size": 21252
     },
-    "numpy-2.4.2-py313h6394566_0.tar.bz2": {
-      "name": "numpy",
-      "build": "py313h6394566_0",
-      "version": "2.4.2",
-      "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
-      "hash": {
-        "sha256": "8c9e00b911abb3cf83fb0c51ff07b0ff34675bbf3d06809b2ecb3b46d15f9e3a"
-      },
-      "size": 6910078
-    },
-    "scipy-1.17.0-np22py313h759dc5e_0.tar.bz2": {
+    "scipy-1.15.3-np23py313h0504e4f_3.tar.bz2": {
       "name": "scipy",
-      "build": "np22py313h759dc5e_0",
-      "version": "1.17.0",
+      "build": "np23py313h0504e4f_3",
+      "version": "1.15.3",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "9252e23b068d10ece64c962b54db2e2204de9cff14edce9aa708b3419279b087"
+        "md5": "9b772349a01ea6be1698b76dae657975",
+        "sha256": "f147efcc2c1921cb37ee7f5c67a955f971cbbfad7abbb6d5b483077eae09d649"
       },
-      "size": 20252970
+      "size": 10140187
     },
-    "pillow-12.1.0-py313hafe190e_0.tar.bz2": {
-      "name": "pillow",
-      "build": "py313hafe190e_0",
-      "version": "12.1.0",
-      "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
-      "hash": {
-        "sha256": "927ed68ff065ea2a08cdec59106b1f8e0731753f4640e1015ed41fdf09ccf1dc"
-      },
-      "size": 1205242
-    },
-    "python-3.13.1-h_c8de616_5_cp313.tar.bz2": {
+    "python-3.13.1-h_2efca29_10_cp313.tar.bz2": {
       "name": "python",
-      "build": "h_c8de616_5_cp313",
+      "build": "h_2efca29_10_cp313",
       "version": "3.13.1",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "7f9a3ec3cc534475d23c072b60d4b0b4272fc4fbe7523e80aa88f7d491b83c86"
+        "md5": "362a6bf7be2118d8bac1d1e32bfcbfbc",
+        "sha256": "6e66ba2ddf647dfd05fb6e9455c1e04b2acb35c20ada626269f90530f9e6e4e5"
       },
-      "size": 13730039
+      "size": 5726398
     },
     "xeus-python-shell-lite-0.6.6-pyhd8ed1ab_0.conda": {
       "name": "xeus-python-shell-lite",
@@ -173,38 +221,52 @@
       },
       "size": 12760
     },
-    "pyjs-rt-3.2.0-py313h7595f35_0.tar.bz2": {
+    "pyjs-rt-4.0.2-py313h690bb57_3.tar.bz2": {
       "name": "pyjs-rt",
-      "build": "py313h7595f35_0",
-      "version": "3.2.0",
+      "build": "py313h690bb57_3",
+      "version": "4.0.2",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "685501d87313eeb2de9c2adaaa3a2850998e03d1bfc55910f58840267bb9c98f"
+        "sha256": "8482cca682dd4634dbe0e9b015f4cd89f18983540dd8e7e56acf3b80cc136214"
       },
-      "size": 46084
+      "size": 46493
     },
-    "emscripten-abi-3.1.73-h267e887_12.tar.bz2": {
+    "emscripten-abi-4.0.9-h267e887_8.tar.bz2": {
       "name": "emscripten-abi",
-      "build": "h267e887_12",
-      "version": "3.1.73",
+      "build": "h267e887_8",
+      "version": "4.0.9",
       "subdir": "noarch",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "50477ceddc687fdda3ab437fc95237b7f1c489e28470adc2ea453105b497eed2"
+        "md5": "744cafd9d23d91fc2943a29fdbb4c6a6",
+        "sha256": "98cfd70341371eccfd6e186e3be1b18b2ac1cb859ecb9efb9a96303885a6bb2a"
       },
-      "size": 11548
+      "size": 13081
     },
-    "python_abi-3.13.1-1_cp313.tar.bz2": {
-      "name": "python_abi",
-      "build": "1_cp313",
-      "version": "3.13.1",
+    "xeus-5.2.7-h0b0027f_0.tar.bz2": {
+      "name": "xeus",
+      "build": "h0b0027f_0",
+      "version": "5.2.7",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "30a61e8347df1050a1aadbf34ece486d4a5fb173526d4c8af83f825620eb844a"
+        "md5": "cdb9d5fc9628e1c8ffa6e753017f309d",
+        "sha256": "5b136c72aa98e514f8413b0fe29400d40acecba1f39622c511ae06c54af1805f"
       },
-      "size": 2597
+      "size": 299788
+    },
+    "python_abi-3.13-8_cp313.conda": {
+      "name": "python_abi",
+      "build": "8_cp313",
+      "version": "3.13",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "94305520c52a4aa3f6c2b1ff6008d9f8",
+        "sha256": "210bffe7b121e651419cb196a2a63687b087497595c9be9d20ebe97dd06060a7"
+      },
+      "size": 7002
     },
     "nlohmann_json-abi-3.12.0-h0f90c79_1.conda": {
       "name": "nlohmann_json-abi",
@@ -218,16 +280,17 @@
       },
       "size": 4335
     },
-    "libffi-3.4.6-h7223423_1.tar.bz2": {
-      "name": "libffi",
-      "build": "h7223423_1",
-      "version": "3.4.6",
+    "numpy-2.4.2-py313hcf5bae3_3.tar.bz2": {
+      "name": "numpy",
+      "build": "py313hcf5bae3_3",
+      "version": "2.4.2",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "fa6f11554d28dfbfdfc075632d92a628c4ccbd57ca7226162e6fe62e14d21b19"
+        "md5": "7179fc4d53d365828d4d998332f185e9",
+        "sha256": "c00d04e79e6a418ec6083acaa363ed893b83784106b6e19fd5cca7e689f330ed"
       },
-      "size": 21294
+      "size": 2799039
     },
     "pycparser-2.22-pyh29332c3_1.conda": {
       "name": "pycparser",
@@ -253,51 +316,108 @@
       },
       "size": 27353
     },
-    "fsspec-2026.1.0-pyhd8ed1ab_0.conda": {
+    "fsspec-2026.2.0-pyhd8ed1ab_0.conda": {
       "name": "fsspec",
       "build": "pyhd8ed1ab_0",
-      "version": "2026.1.0",
+      "version": "2026.2.0",
       "subdir": "noarch",
       "channel": "conda-forge",
       "hash": {
-        "md5": "1daaf94a304a27ba3446a306235a37ea",
-        "sha256": "bfba6c280366f48b00a6a7036988fc2bc3fea5ac1d8303152c9da69d72a22936"
+        "md5": "496c6c9411a6284addf55c898d6ed8d7",
+        "sha256": "239b67edf1c5e5caed52cf36e9bed47cb21b37721779828c130e6b3fd9793c1b"
       },
-      "size": 148116
+      "size": 148757
     },
-    "ipywidgets-8.1.8-pyhd8ed1ab_0.conda": {
-      "name": "ipywidgets",
+    "arrow-cpp-23.0.0-np23py313hf4f1a80_4.tar.bz2": {
+      "name": "arrow-cpp",
+      "build": "np23py313hf4f1a80_4",
+      "version": "23.0.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "e4607c026591257cee956b13814d856a",
+        "sha256": "e7105b78b7d56a6083a556cdc969d2213e549de41917c37cb5e72d4807fe93be"
+      },
+      "size": 5444463
+    },
+    "snappy-1.2.2-h0b0027f_0.tar.bz2": {
+      "name": "snappy",
+      "build": "h0b0027f_0",
+      "version": "1.2.2",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "88e511cb5baa54e825a3bf8d580adb5d",
+        "sha256": "178f97c49366ae2ffbc98b7a3e8bb4af263e0eb6c5ba07e5143b71c42c667a51"
+      },
+      "size": 39456
+    },
+    "bzip2-1.0.8-h8b79025_8.tar.bz2": {
+      "name": "bzip2",
+      "build": "h8b79025_8",
+      "version": "1.0.8",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "72f9ce2dbcbd1ab4232b7ffa9b07c78cea0b63e4cf4263e612c07b7e574452da"
+      },
+      "size": 106870
+    },
+    "brotli-1.2.0-py313h073fb45_0.tar.bz2": {
+      "name": "brotli",
+      "build": "py313h073fb45_0",
+      "version": "1.2.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "e5fa3451050a7099e4c4e5dd40a254a3adbd9a5d620834e203c0cc9a83218f59"
+      },
+      "size": 662222
+    },
+    "nlohmann_json-3.12.0-h0b0027f_0.tar.bz2": {
+      "name": "nlohmann_json",
+      "build": "h0b0027f_0",
+      "version": "3.12.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "a616da847fc88fdcf6abbe208583f9f28d72d4628c33d47ea4a07c84a22de524"
+      },
+      "size": 123248
+    },
+    "libabseil-20240116.3-hb88d4a0_1.tar.bz2": {
+      "name": "libabseil",
+      "build": "hb88d4a0_1",
+      "version": "20240116.3",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "ac324566fe4e42fdc3ac671b70914c89a3198d686ded45ba8dc910df97b322d1"
+      },
+      "size": 1057129
+    },
+    "re2-2024.07.02-hb88d4a0_0.tar.bz2": {
+      "name": "re2",
+      "build": "hb88d4a0_0",
+      "version": "2024.07.02",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "461881732a01bbbb5cf22f3b513a8c9e0e68304a55070ab12524526c98d9424e"
+      },
+      "size": 199976
+    },
+    "filelock-3.24.2-pyhd8ed1ab_0.conda": {
+      "name": "filelock",
       "build": "pyhd8ed1ab_0",
-      "version": "8.1.8",
+      "version": "3.24.2",
       "subdir": "noarch",
       "channel": "conda-forge",
       "hash": {
-        "md5": "d68e3f70d1f068f1b66d94822fdc644e",
-        "sha256": "6bb58afb7eabc8b4ac0c7e92707fb498313cc0164cf04e7ba1090dbf49af514b"
+        "md5": "4c222e160d3ef895d83a1b813310dbce",
+        "sha256": "87e91bf552df4a2781a5f9ea191719cffe08b45b1e2f00531cc87f454518868f"
       },
-      "size": 114376
-    },
-    "openblas-flang-0.3.31-h4e94343_0.tar.bz2": {
-      "name": "openblas-flang",
-      "build": "h4e94343_0",
-      "version": "0.3.31",
-      "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
-      "hash": {
-        "sha256": "a83164e0002ad79374d3011e071746f1e3963a4830588401aa8832695013cc81"
-      },
-      "size": 5481967
-    },
-    "zlib-1.3.1-h4e94343_2.tar.bz2": {
-      "name": "zlib",
-      "build": "h4e94343_2",
-      "version": "1.3.1",
-      "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
-      "hash": {
-        "sha256": "e1cdb929e27c77e8795b469d81b83076c0bcb6d79b7feaf5e9d92c41c045b626"
-      },
-      "size": 98537
+      "size": 24639
     },
     "packaging-26.0-pyhcf101f3_0.conda": {
       "name": "packaging",
@@ -311,16 +431,110 @@
       },
       "size": 72010
     },
-    "ipython-9.10.0-py313hd355c7d_0.tar.bz2": {
-      "name": "ipython",
-      "build": "py313hd355c7d_0",
-      "version": "9.10.0",
+    "pyyaml-6.0-py313h1804a44_1.tar.bz2": {
+      "name": "pyyaml",
+      "build": "py313h1804a44_1",
+      "version": "6.0",
       "subdir": "emscripten-wasm32",
-      "channel": "emscripten-forge",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
       "hash": {
-        "sha256": "a87f4a7fdbc7edf159205749bc642289f93c9d779b7c8e845cfde3b27d434a90"
+        "md5": "e51acbf7a6d00541253d5b663a04af08",
+        "sha256": "356edcf98867bbefb2007f400d02ca67181b3b6ce3624d0db06666c254980a5b"
       },
-      "size": 1180098
+      "size": 41087
+    },
+    "libyaml-0.2.5-h8b79025_0.tar.bz2": {
+      "name": "libyaml",
+      "build": "h8b79025_0",
+      "version": "0.2.5",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "733f3510cb794b579624f0a6aa650b1a7b3a1dc3429be5962b623decfada9832"
+      },
+      "size": 187196
+    },
+    "requests-2.32.5-pyhcf101f3_1.conda": {
+      "name": "requests",
+      "build": "pyhcf101f3_1",
+      "version": "2.32.5",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "c65df89a0b2e321045a9e01d1337b182",
+        "sha256": "7813c38b79ae549504b2c57b3f33394cea4f2ad083f0994d2045c2e24cb538c5"
+      },
+      "size": 63602
+    },
+    "tqdm-4.67.2-pyhd8ed1ab_1.conda": {
+      "name": "tqdm",
+      "build": "pyhd8ed1ab_1",
+      "version": "4.67.2",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "8adffc92276ccdc960b08a387d3189e0",
+        "sha256": "3cc46ca3d5e64ab82f68a9bebf0a3c0f300adb38ad0ca936b8edd563b5b85136"
+      },
+      "size": 90415
+    },
+    "typing-extensions-4.15.0-h396c80c_0.conda": {
+      "name": "typing-extensions",
+      "build": "h396c80c_0",
+      "version": "4.15.0",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "edd329d7d3a4ab45dcf905899a7a6115",
+        "sha256": "7c2df5721c742c2a47b2c8f960e718c930031663ac1174da67c1ed5999f7938c"
+      },
+      "size": 91383
+    },
+    "typing_extensions-4.15.0-pyhcf101f3_0.conda": {
+      "name": "typing_extensions",
+      "build": "pyhcf101f3_0",
+      "version": "4.15.0",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "0caa1af407ecff61170c9437a808404d",
+        "sha256": "032271135bca55aeb156cee361c81350c6f3fb203f57d024d7e5a1fc9ef18731"
+      },
+      "size": 51692
+    },
+    "ipywidgets-8.1.8-pyhd8ed1ab_0.conda": {
+      "name": "ipywidgets",
+      "build": "pyhd8ed1ab_0",
+      "version": "8.1.8",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "d68e3f70d1f068f1b66d94822fdc644e",
+        "sha256": "6bb58afb7eabc8b4ac0c7e92707fb498313cc0164cf04e7ba1090dbf49af514b"
+      },
+      "size": 114376
+    },
+    "openblas-flang-0.3.31-h8b79025_0.tar.bz2": {
+      "name": "openblas-flang",
+      "build": "h8b79025_0",
+      "version": "0.3.31",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "c25e4bc9c797f0643d856a24d409baba20eeaebcced8ffe3d5babebaf0843c3f"
+      },
+      "size": 5481380
+    },
+    "ipython-9.9.0-py313h6d8a2ba_0.tar.bz2": {
+      "name": "ipython",
+      "build": "py313h6d8a2ba_0",
+      "version": "9.9.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "7887d2b248c431a1efc18fe03e43042d05c91b103b20f0cdc221e2c5792227b3"
+      },
+      "size": 1177339
     },
     "backcall-0.2.0-pyh9f0ad1d_0.tar.bz2": {
       "name": "backcall",
@@ -430,17 +644,182 @@
       },
       "size": 53561
     },
-    "typing_extensions-4.15.0-pyhcf101f3_0.conda": {
-      "name": "typing_extensions",
-      "build": "pyhcf101f3_0",
-      "version": "4.15.0",
+    "boost-cpp-1.87.0-h29704b6_1.tar.bz2": {
+      "name": "boost-cpp",
+      "build": "h29704b6_1",
+      "version": "1.87.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "4ad8caa6f1dd66033a51b3afd1fc25ca",
+        "sha256": "a42cb354a18c2913bc58e807f579dd5af2c8f068cce3f844b4b4bc96d44b8499"
+      },
+      "size": 12631448
+    },
+    "libutf8proc-2.11.3-h8b79025_0.tar.bz2": {
+      "name": "libutf8proc",
+      "build": "h8b79025_0",
+      "version": "2.11.3",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "0b062f58b25850aaee852e0caf2b549acad33244cbea80729450bc150029d5bd"
+      },
+      "size": 109891
+    },
+    "rapidjson-1.2.1-h0b0027f_0.tar.bz2": {
+      "name": "rapidjson",
+      "build": "h0b0027f_0",
+      "version": "1.2.1",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "c204732121662d2c4a19d56befa030e3d26dcbb52c55c147669e61a11e2787bf"
+      },
+      "size": 143086
+    },
+    "zlib-1.3.1-h8b79025_3.tar.bz2": {
+      "name": "zlib",
+      "build": "h8b79025_3",
+      "version": "1.3.1",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "4b14349457a77cc2e65eecb43a2acdac",
+        "sha256": "1364ac0e2c4a36f525a7728710d01da3fa6151de97dbdeb65c7c727d532a802a"
+      },
+      "size": 102621
+    },
+    "lz4-c-1.10.0-h906537b_2.tar.bz2": {
+      "name": "lz4-c",
+      "build": "h906537b_2",
+      "version": "1.10.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "48fb016705b78e531990bd75522e56c8",
+        "sha256": "939e97e8c7ecd751938a26da9f345e32a5786205af5db0f51c173fd3115f856e"
+      },
+      "size": 159853
+    },
+    "protobuf-6.33.5-py313h6d8a2ba_1.tar.bz2": {
+      "name": "protobuf",
+      "build": "py313h6d8a2ba_1",
+      "version": "6.33.5",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "e5b6165db82414b3b01b8a581d92e08b",
+        "sha256": "27501795d1c4f80baae9b0e64b28b7032bb50f3bc7a04a4604104ecbcc24c016"
+      },
+      "size": 226409
+    },
+    "zstd-1.5.7-hb2bca66_2.tar.bz2": {
+      "name": "zstd",
+      "build": "hb2bca66_2",
+      "version": "1.5.7",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "47f1c1857722a08135c5dd56470e13c2",
+        "sha256": "21bcfa3c237f49ebd25a4c34b6e77602d4094e95b6b63d3d44f0236111671ed2"
+      },
+      "size": 811391
+    },
+    "xsimd-14.0.0-py313h313682a_0.tar.bz2": {
+      "name": "xsimd",
+      "build": "py313h313682a_0",
+      "version": "14.0.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "sha256": "75c9e44f1e7b3fca4411db2ef83534b99c1b4dd7b8f90abefc97704e85906e9a"
+      },
+      "size": 1009056
+    },
+    "thrift-cpp-0.22.0-py313h0b61ba3_1.tar.bz2": {
+      "name": "thrift-cpp",
+      "build": "py313h0b61ba3_1",
+      "version": "0.22.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "2ea1b9ac8d92ffaf5403573399ceacc3",
+        "sha256": "583dba38b8b5fc6d207320da13bbbdffe219a6189dd6be0dae5812c60f8614c3"
+      },
+      "size": 305818
+    },
+    "r-base-4.5.2-h6cbd16e_3.tar.bz2": {
+      "name": "r-base",
+      "build": "h6cbd16e_3",
+      "version": "4.5.2",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "87d7542abb4934440c4120d63f3fc1e5",
+        "sha256": "5a679c824934134d028517973bfb0bf90435cb58757a5d653aa4a9e538efa174"
+      },
+      "size": 25267541
+    },
+    "certifi-2026.1.4-pyhd8ed1ab_0.conda": {
+      "name": "certifi",
+      "build": "pyhd8ed1ab_0",
+      "version": "2026.1.4",
       "subdir": "noarch",
       "channel": "conda-forge",
       "hash": {
-        "md5": "0caa1af407ecff61170c9437a808404d",
-        "sha256": "032271135bca55aeb156cee361c81350c6f3fb203f57d024d7e5a1fc9ef18731"
+        "md5": "eacc711330cd46939f66cd401ff9c44b",
+        "sha256": "110338066d194a715947808611b763857c15458f8b3b97197387356844af9450"
       },
-      "size": 51692
+      "size": 150969
+    },
+    "charset-normalizer-3.4.4-pyhd8ed1ab_0.conda": {
+      "name": "charset-normalizer",
+      "build": "pyhd8ed1ab_0",
+      "version": "3.4.4",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "a22d1fd9bf98827e280a02875d9a007a",
+        "sha256": "b32f8362e885f1b8417bac2b3da4db7323faa12d5db62b7fd6691c02d60d6f59"
+      },
+      "size": 50965
+    },
+    "idna-3.11-pyhd8ed1ab_0.conda": {
+      "name": "idna",
+      "build": "pyhd8ed1ab_0",
+      "version": "3.11",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "53abe63df7e10a6ba605dc5f9f961d36",
+        "sha256": "ae89d0299ada2a3162c2614a9d26557a92aa6a77120ce142f8e0109bbf0342b0"
+      },
+      "size": 50721
+    },
+    "urllib3-2.2.2-pyhd8ed1ab_0.conda": {
+      "name": "urllib3",
+      "build": "pyhd8ed1ab_0",
+      "version": "2.2.2",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "92cdb6fe54b78739ad70637e4f0deb07",
+        "sha256": "8cd972048f297b8e0601158ce352f5ca9510dda9f2706a46560220aa58b9f038"
+      },
+      "size": 95016
+    },
+    "colorama-0.4.6-pyhd8ed1ab_1.conda": {
+      "name": "colorama",
+      "build": "pyhd8ed1ab_1",
+      "version": "0.4.6",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "962b9857ee8e7018c22f2776ffa0b2d7",
+        "sha256": "ab29d57dc70786c1269633ba3dff20288b81664d3ff8d21af995742e2bb03287"
+      },
+      "size": 27011
     },
     "comm-0.2.3-pyhe01879c_0.conda": {
       "name": "comm",
@@ -478,17 +857,17 @@
       },
       "size": 889195
     },
-    "wcwidth-0.5.3-pyhd8ed1ab_0.conda": {
+    "wcwidth-0.6.0-pyhd8ed1ab_0.conda": {
       "name": "wcwidth",
       "build": "pyhd8ed1ab_0",
-      "version": "0.5.3",
+      "version": "0.6.0",
       "subdir": "noarch",
       "channel": "conda-forge",
       "hash": {
-        "md5": "36432484e9ce3b073a51bf138767a593",
-        "sha256": "2395599ec9e37e6f21838bb26e7f2336fa03a4b1460ba10897ec856b21ac7d59"
+        "md5": "c3197f8c0d5b955c904616b716aca093",
+        "sha256": "e298b508b2473c4227206800dfb14c39e4b14fd79d4636132e9e1e4244cdf4aa"
       },
-      "size": 70539
+      "size": 71550
     },
     "asttokens-3.0.1-pyhd8ed1ab_0.conda": {
       "name": "asttokens",
@@ -537,6 +916,42 @@
         "sha256": "a7713dfe30faf17508ec359e0bc7e0983f5d94682492469bd462cdaae9c64d83"
       },
       "size": 19457
+    },
+    "openssl-3.6.1-hb2bca66_1.tar.bz2": {
+      "name": "openssl",
+      "build": "hb2bca66_1",
+      "version": "3.6.1",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "dfd6eb2ccff125186f443dddeae3fd8a",
+        "sha256": "307f7035704e21e41ff34be016ddc2ccf90f5fcc4dec99c18cdc87d7db6733c3"
+      },
+      "size": 4100582
+    },
+    "brotli-python-1.2.0-py313ha26e73d_1.tar.bz2": {
+      "name": "brotli-python",
+      "build": "py313ha26e73d_1",
+      "version": "1.2.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "69a296b6d4b427f1e0b983556fc20f4d",
+        "sha256": "6bdad840282fe4190784067fe80fb2a202154b170ee5fc43d96ea43ba28677f4"
+      },
+      "size": 318364
+    },
+    "pysocks-1.7.1-py313h1804a44_1.tar.bz2": {
+      "name": "pysocks",
+      "build": "py313h1804a44_1",
+      "version": "1.7.1",
+      "subdir": "emscripten-wasm32",
+      "channel": "https://repo.prefix.dev/emscripten-forge-4x",
+      "hash": {
+        "md5": "0570ab9caddc9dfb1e82de0ad0566fe5",
+        "sha256": "fa1a3a87e7b977a700e3460287056fa83ff08aa6fcde134743ec2177af514e0e"
+      },
+      "size": 17987
     }
   },
   "pipPackages": {
@@ -573,149 +988,16 @@
         "sha256": "4221140e633e45b076953c64bcb9b41a744833527f9a037c1ca98bc270798cbf"
       }
     },
-    "pygeodesy-26.2.2-py2.py3-none-any.whl": {
+    "pygeodesy-26.2.16-py2.py3-none-any.whl": {
       "name": "pygeodesy",
-      "version": "26.2.2",
-      "url": "https://files.pythonhosted.org/packages/01/d5/ef241cb5d581f1f48693bf7aff38edaa8c704d1546eb3b98bea9013b4d84/pygeodesy-26.2.2-py2.py3-none-any.whl",
-      "size": 1103999,
+      "version": "26.2.16",
+      "url": "https://files.pythonhosted.org/packages/1b/33/cec7bb5ec4d09d9c8256aa89ca3333cae9e0bcd69251c0f85597661e3d82/pygeodesy-26.2.16-py2.py3-none-any.whl",
+      "size": 1107680,
       "registry": "PyPi",
       "hash": {
-        "md5": "c379252630e4d7afd8640e864384983c",
-        "sha256": "727a8dc9b94ebe8078b645e18ca952665eb73976b13713d7cb618b933002a280"
-      }
-    },
-    "huggingface_hub-1.4.0-py3-none-any.whl": {
-      "name": "huggingface_hub",
-      "version": "1.4.0",
-      "url": "https://files.pythonhosted.org/packages/3f/74/f0fb3a54fbca7c0aeff85f41d93b90ca3f6a36d918459401a3890763c54b/huggingface_hub-1.4.0-py3-none-any.whl",
-      "size": 553202,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "9653ee62423221ca45b124b8f33baeec",
-        "sha256": "49d380ffddb31d9d4b6acc0792691f8fa077e1ed51980ed42c7abca62ec1b3b6"
-      }
-    },
-    "filelock-3.20.3-py3-none-any.whl": {
-      "name": "filelock",
-      "version": "3.20.3",
-      "url": "https://files.pythonhosted.org/packages/b5/36/7fb70f04bf00bc646cd5bb45aa9eddb15e19437a28b8fb2b4a5249fac770/filelock-3.20.3-py3-none-any.whl",
-      "size": 16701,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "4f9196d2fae003bfa91eb88503e0ee5a",
-        "sha256": "4b0dda527ee31078689fc205ec4f1c1bf7d56cf88b6dc9426c4f230e46c2dce1"
-      }
-    },
-    "httpx-0.28.1-py3-none-any.whl": {
-      "name": "httpx",
-      "version": "0.28.1",
-      "url": "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl",
-      "size": 73517,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "7cb326b464b75a04aa57954631097aa4",
-        "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
-      }
-    },
-    "anyio-4.12.1-py3-none-any.whl": {
-      "name": "anyio",
-      "version": "4.12.1",
-      "url": "https://files.pythonhosted.org/packages/38/0e/27be9fdef66e72d64c0cdc3cc2823101b80585f8119b5c112c2e8f5f7dab/anyio-4.12.1-py3-none-any.whl",
-      "size": 113592,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "2ef04e7c3e1747f5e5f2bc22722bcd06",
-        "sha256": "d405828884fc140aa80a3c667b8beed277f1dfedec42ba031bd6ac3db606ab6c"
-      }
-    },
-    "idna-3.11-py3-none-any.whl": {
-      "name": "idna",
-      "version": "3.11",
-      "url": "https://files.pythonhosted.org/packages/0e/61/66938bbb5fc52dbdf84594873d5b51fb1f7c7794e9c0f5bd885f30bc507b/idna-3.11-py3-none-any.whl",
-      "size": 71008,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "9a707ac0a65f018883cff8e82f48314e",
-        "sha256": "771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea"
-      }
-    },
-    "certifi-2026.1.4-py3-none-any.whl": {
-      "name": "certifi",
-      "version": "2026.1.4",
-      "url": "https://files.pythonhosted.org/packages/e6/ad/3cc14f097111b4de0040c83a525973216457bbeeb63739ef1ed275c1c021/certifi-2026.1.4-py3-none-any.whl",
-      "size": 152900,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "1dab98768140ad2d8dbc9be8f14a2af9",
-        "sha256": "9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c"
-      }
-    },
-    "httpcore-1.0.9-py3-none-any.whl": {
-      "name": "httpcore",
-      "version": "1.0.9",
-      "url": "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl",
-      "size": 78784,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "146bed42feef3884ed52b749db3b02ae",
-        "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"
-      }
-    },
-    "h11-0.16.0-py3-none-any.whl": {
-      "name": "h11",
-      "version": "0.16.0",
-      "url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl",
-      "size": 37515,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "ab5835960dca6f63c9317c218f646e66",
-        "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
-      }
-    },
-    "shellingham-1.5.4-py2.py3-none-any.whl": {
-      "name": "shellingham",
-      "version": "1.5.4",
-      "url": "https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl",
-      "size": 9755,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "c7dfcd723fcc27c548ad3a7b06c976dc",
-        "sha256": "7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"
-      }
-    },
-    "tqdm-4.67.3-py3-none-any.whl": {
-      "name": "tqdm",
-      "version": "4.67.3",
-      "url": "https://files.pythonhosted.org/packages/16/e1/3079a9ff9b8e11b846c6ac5c8b5bfb7ff225eee721825310c91b3b50304f/tqdm-4.67.3-py3-none-any.whl",
-      "size": 78374,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "fb84ad0286139bc059e960110a0404c2",
-        "sha256": "ee1e4c0e59148062281c49d80b25b67771a127c85fc9676d3be5f243206826bf"
-      }
-    },
-    "typer_slim-0.21.1-py3-none-any.whl": {
-      "name": "typer-slim",
-      "version": "0.21.1",
-      "url": "https://files.pythonhosted.org/packages/c8/0a/4aca634faf693e33004796b6cee0ae2e1dba375a800c16ab8d3eff4bb800/typer_slim-0.21.1-py3-none-any.whl",
-      "size": 47444,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "cf2e081dc9b354d5fb75e2a43b624fb9",
-        "sha256": "6e6c31047f171ac93cc5a973c9e617dbc5ab2bddc4d0a3135dc161b4e2020e0d"
-      }
-    },
-    "click-8.3.1-py3-none-any.whl": {
-      "name": "click",
-      "version": "8.3.1",
-      "url": "https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl",
-      "size": 108274,
-      "registry": "PyPi",
-      "hash": {
-        "md5": "f032502934a5979330da77e3f09d889c",
-        "sha256": "981153a64e25f12d547d3426c367a4857371575ee7ad18df2a6183ab0545b2a6"
+        "md5": "2db2fa9a0ce8aa157d3fd18bd27e7516",
+        "sha256": "27231738f27bb17c0146caa7555f1bc168f062328236e795c0f4962fa3da054b"
       }
     }
-  },
-  "id": "116085461083793"
+  }
 }
