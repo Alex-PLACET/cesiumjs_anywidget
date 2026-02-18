@@ -1,7 +1,7 @@
 name: cesiumjs-anywidget-examples
 channels:
-  - emscripten-forge
-  - conda-forge
+  - https://repo.prefix.dev/emscripten-forge-4x
+  - https://repo.prefix.dev/conda-forge
 dependencies:
   - xeus-python # A Jupyter kernel for Python
   - pyarrow
@@ -9,6 +9,7 @@ dependencies:
   - numpy
   - scipy
   - pillow
+  - pyyaml
   - pip: # List pure Python packages from PyPi here
     - cesiumjs-anywidget
     - huggingface_hub
