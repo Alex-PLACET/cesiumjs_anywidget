@@ -63,6 +63,19 @@ class CesiumWidget(anywidget.AnyWidget):
     enable_lighting = traitlets.Bool(False, help="Enable scene lighting").tag(sync=True)
     show_timeline = traitlets.Bool(True, help="Show timeline widget").tag(sync=True)
     show_animation = traitlets.Bool(True, help="Show animation widget").tag(sync=True)
+    request_render_mode = traitlets.Bool(
+        True,
+        help="Enable Cesium explicit rendering mode for better idle performance"
+    ).tag(sync=True)
+    maximum_render_time_change = traitlets.Float(
+        default_value=None,
+        allow_none=True,
+        help=(
+            "Maximum simulation time delta in seconds before requesting a render when "
+            "request_render_mode is enabled; None defaults to 0.0 while animating "
+            "(smooth timeline playback) and Infinity while paused (best idle performance)"
+        ),
+    ).tag(sync=True)
     
     # Photorealistic 3D Tiles options
     enable_photorealistic_tiles = traitlets.Bool(
@@ -144,6 +157,11 @@ class CesiumWidget(anywidget.AnyWidget):
         help="Clock control commands (setTime, play, pause, setMultiplier)"
     ).tag(sync=True)
 
+    request_render_trigger = traitlets.Dict(
+        default_value={},
+        help="Trigger a scene.requestRender() call on the JavaScript side"
+    ).tag(sync=True)
+
     # Camera commands (for advanced camera operations)
     camera_command = traitlets.Dict(
         default_value={},
@@ -223,6 +241,14 @@ class CesiumWidget(anywidget.AnyWidget):
                 logger.warning("Note: Some features may not work without a token.")
 
         super().__init__(**kwargs)
+
+    def request_render(self):
+        """Request a frame render explicitly when request_render_mode is enabled."""
+        import time
+
+        self.request_render_trigger = {
+            "timestamp": time.time(),
+        }
 
     def fly_to(self, latitude: float, longitude: float, altitude: float = 400, 
                heading: float = 0.0, pitch: float = -15.0, roll: float = 0.0,

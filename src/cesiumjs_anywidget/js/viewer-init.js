@@ -16,6 +16,9 @@ export const CESIUM_CDN_VERSION = '1.138';
 const CONSTANTS = {
   // CesiumJS CDN
   CESIUM_CDN_VERSION,
+
+  // Render Policy
+  RUNNING_TARGET_FPS: 60,
   
   // Interaction Timing
   TIMELINE_SCRUB_DEBOUNCE_MS: 500,
@@ -141,9 +144,16 @@ export function createLoadingIndicator(container, hasToken) {
  */
 export function createViewer(container, model, Cesium) {
   log(PREFIX, 'Creating viewer with options...');
+  const shouldAnimate = model.get("should_animate") === true;
+  const requestRenderMode = shouldAnimate ? false : (model.get("request_render_mode") ?? true);
+  const maximumRenderTimeChange = model.get("maximum_render_time_change") ?? (
+    shouldAnimate ? 0.0 : Number.POSITIVE_INFINITY
+  );
   const viewerOptions = {
     timeline: model.get("show_timeline"),
     animation: model.get("show_animation"),
+    requestRenderMode,
+    maximumRenderTimeChange,
     baseLayerPicker: true,
     geocoder: true,
     homeButton: true,
@@ -193,6 +203,79 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
   log(PREFIX, 'Setting up viewer listeners');
   let isDestroyed = false;
   let scrubTimeout = null;
+  let isApplyingRunningPolicy = false;
+
+  function requestSceneRender() {
+    if (!viewer || !viewer.scene || !viewer.scene.requestRender) return;
+    viewer.scene.requestRender();
+  }
+
+  function resolveMaximumRenderTimeChange() {
+    const configured = model.get("maximum_render_time_change");
+    if (configured !== undefined && configured !== null) {
+      return configured;
+    }
+    return viewer.clock?.shouldAnimate ? 0.0 : Number.POSITIVE_INFINITY;
+  }
+
+  function applyAnimationRenderPolicy(isAnimating) {
+    if (!viewer || !viewer.scene) return;
+
+    if (isApplyingRunningPolicy === isAnimating) return;
+
+    if (isAnimating) {
+      viewer.scene.requestRenderMode = false;
+      viewer.scene.maximumRenderTimeChange = 0.0;
+      viewer.targetFrameRate = CONSTANTS.RUNNING_TARGET_FPS;
+      isApplyingRunningPolicy = true;
+      log(PREFIX, 'Applied running render policy:', {
+        requestRenderMode: viewer.scene.requestRenderMode,
+        maximumRenderTimeChange: viewer.scene.maximumRenderTimeChange,
+        targetFrameRate: viewer.targetFrameRate,
+      });
+      return;
+    }
+
+    viewer.scene.requestRenderMode = model.get("request_render_mode") ?? true;
+    viewer.scene.maximumRenderTimeChange = resolveMaximumRenderTimeChange();
+    viewer.targetFrameRate = undefined;
+    isApplyingRunningPolicy = false;
+    log(PREFIX, 'Applied paused render policy:', {
+      requestRenderMode: viewer.scene.requestRenderMode,
+      maximumRenderTimeChange: viewer.scene.maximumRenderTimeChange,
+      targetFrameRate: viewer.targetFrameRate,
+    });
+  }
+
+  model.on("change:request_render_mode", () => {
+    if (isDestroyed) return;
+    if (!viewer || !viewer.scene) return;
+
+    const isAnimating = viewer.clock?.shouldAnimate === true;
+    applyAnimationRenderPolicy(isAnimating);
+    log(PREFIX, 'requestRenderMode changed, animating:', isAnimating);
+    if (!isAnimating) {
+      requestSceneRender();
+    }
+  });
+
+  model.on("change:maximum_render_time_change", () => {
+    if (isDestroyed) return;
+    if (!viewer || !viewer.scene) return;
+
+    const isAnimating = viewer.clock?.shouldAnimate === true;
+    applyAnimationRenderPolicy(isAnimating);
+    log(PREFIX, 'maximumRenderTimeChange changed, animating:', isAnimating);
+    if (!isAnimating) {
+      requestSceneRender();
+    }
+  });
+
+  model.on("change:request_render_trigger", () => {
+    if (isDestroyed) return;
+    log(PREFIX, 'Explicit render requested from Python');
+    requestSceneRender();
+  });
 
   model.on("change:enable_terrain", () => {
     if (isDestroyed) {
@@ -213,6 +296,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     if (!viewer) return;
     log(PREFIX, 'Lighting setting changed:', model.get("enable_lighting"));
     viewer.scene.globe.enableLighting = model.get("enable_lighting");
+    requestSceneRender();
   });
 
   model.on("change:height", () => {
@@ -284,6 +368,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     if (settings.mieAnisotropy !== undefined) {
       atmosphere.mieAnisotropy = settings.mieAnisotropy;
     }
+    requestSceneRender();
   });
 
   // Setup sky atmosphere settings listener
@@ -339,6 +424,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     if (settings.perFragmentAtmosphere !== undefined) {
       skyAtmosphere.perFragmentAtmosphere = settings.perFragmentAtmosphere;
     }
+    requestSceneRender();
   });
 
   // SkyBox settings listener
@@ -383,6 +469,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
         }
       }
     }
+    requestSceneRender();
   });
 
   // ============= Clock/Timeline Initialization and Listeners =============
@@ -415,6 +502,8 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     log(PREFIX, 'Clock animation initialized:', initialAnimate);
   }
 
+  applyAnimationRenderPolicy(viewer.clock?.shouldAnimate === true);
+
   // Listen for current_time changes
   model.on("change:current_time", () => {
     if (isDestroyed) return;
@@ -427,6 +516,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
       const julianDate = Cesium.JulianDate.fromIso8601(timeStr);
       viewer.clock.currentTime = julianDate;
       log(PREFIX, 'Clock time updated:', timeStr);
+      requestSceneRender();
     } catch (err) {
       warn(PREFIX, 'Failed to parse time:', timeStr, err);
     }
@@ -441,6 +531,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     if (multiplier !== undefined) {
       viewer.clock.multiplier = multiplier;
       log(PREFIX, 'Clock multiplier updated:', multiplier);
+      requestSceneRender();
     }
   });
 
@@ -452,7 +543,11 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
     const shouldAnimate = model.get("should_animate");
     if (shouldAnimate !== undefined) {
       viewer.clock.shouldAnimate = shouldAnimate;
+      applyAnimationRenderPolicy(shouldAnimate === true);
       log(PREFIX, 'Clock animation updated:', shouldAnimate);
+      if (!shouldAnimate) {
+        requestSceneRender();
+      }
     }
   });
 
@@ -473,6 +568,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
             const julianDate = Cesium.JulianDate.fromIso8601(command.time);
             viewer.clock.currentTime = julianDate;
             log(PREFIX, 'Clock time set via command:', command.time);
+            requestSceneRender();
           } catch (err) {
             warn(PREFIX, 'Failed to parse time in command:', command.time, err);
           }
@@ -481,18 +577,22 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
         
       case 'play':
         viewer.clock.shouldAnimate = true;
+        applyAnimationRenderPolicy(true);
         log(PREFIX, 'Clock animation started');
         break;
         
       case 'pause':
         viewer.clock.shouldAnimate = false;
+        applyAnimationRenderPolicy(false);
         log(PREFIX, 'Clock animation paused');
+        requestSceneRender();
         break;
         
       case 'setMultiplier':
         if (command.multiplier !== undefined) {
           viewer.clock.multiplier = command.multiplier;
           log(PREFIX, 'Clock multiplier set via command:', command.multiplier);
+          requestSceneRender();
         }
         break;
         
@@ -504,6 +604,7 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
             viewer.clock.startTime = startDate;
             viewer.clock.stopTime = stopDate;
             log(PREFIX, 'Clock range set via command:', command.startTime, 'to', command.stopTime);
+            requestSceneRender();
           } catch (err) {
             warn(PREFIX, 'Failed to parse time range in command:', err);
           }
@@ -611,6 +712,8 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
         }
       }
     }
+
+    requestSceneRender();
   });
 
   // Helper function to get current camera state
@@ -791,11 +894,38 @@ export function setupViewerListeners(viewer, model, container, Cesium) {
   // Track timeline scrubbing (if timeline exists)
   if (viewer.timeline) {
     let timelineScrubbing = false;
+    let lastTimelineTime = viewer.clock?.currentTime ? Cesium.JulianDate.clone(viewer.clock.currentTime) : null;
     
     // Listen to clock changes to detect timeline interaction
     viewer.clock.onTick.addEventListener(() => {
       if (isDestroyed) return;
+      const isAnimating = viewer.clock.shouldAnimate === true;
+
+      // Keep render policy aligned with Cesium timeline controls (play/rewind/pause)
+      // even when those controls do not round-trip through model listeners.
+      applyAnimationRenderPolicy(isAnimating);
+
       if (viewer.timeline) {
+        if (isAnimating) {
+          // Avoid per-frame timeout churn while timeline playback is running.
+          if (timelineScrubbing) {
+            timelineScrubbing = false;
+          }
+          if (scrubTimeout) {
+            clearTimeout(scrubTimeout);
+            scrubTimeout = null;
+          }
+          return;
+        }
+
+        // Ensure manual timeline scrubbing renders even when animation is paused.
+        if (!isAnimating && viewer.clock.currentTime) {
+          if (!lastTimelineTime || !Cesium.JulianDate.equals(viewer.clock.currentTime, lastTimelineTime)) {
+            requestSceneRender();
+            lastTimelineTime = Cesium.JulianDate.clone(viewer.clock.currentTime);
+          }
+        }
+
         // Clear any existing timeout
         if (scrubTimeout) {
           clearTimeout(scrubTimeout);

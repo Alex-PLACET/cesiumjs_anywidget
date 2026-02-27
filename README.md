@@ -158,10 +158,25 @@ widget = CesiumWidget(
     enable_lighting=True,
     show_timeline=True,
     show_animation=True,
+    request_render_mode=True,  # Better idle CPU usage
+    maximum_render_time_change=None,  # Uses Infinity (best performance when time-based updates are not needed)
     latitude=27.9881,
     longitude=86.9250,
     altitude=30000
 )
+```
+
+With explicit rendering enabled, if you change scene properties through Python and want an immediate frame, call:
+
+```python
+widget.request_render()
+```
+
+For time-dynamic scenes (animations/CZML), set a finite value instead of `None`, for example:
+
+```python
+widget.maximum_render_time_change = 0.0
+widget.should_animate = True
 ```
 
 ### Google Photorealistic 3D Tiles

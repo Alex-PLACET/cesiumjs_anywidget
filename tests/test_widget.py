@@ -31,6 +31,8 @@ class TestWidgetInitialization:
         assert widget_instance.enable_lighting is False
         assert widget_instance.show_timeline is True
         assert widget_instance.show_animation is True
+        assert widget_instance.request_render_mode is True
+        assert widget_instance.maximum_render_time_change is None
     
     def test_default_ion_token(self, widget_instance):
         """Test default Cesium Ion token."""
@@ -39,6 +41,10 @@ class TestWidgetInitialization:
     def test_default_geojson_data(self, widget_instance):
         """Test default GeoJSON data."""
         assert widget_instance.geojson_data == []
+
+    def test_default_request_render_trigger(self, widget_instance):
+        """Test default explicit render trigger state."""
+        assert widget_instance.request_render_trigger == {}
 
 
 class TestWidgetConfiguration:
@@ -112,6 +118,21 @@ class TestWidgetConfiguration:
         assert widget_with_config.enable_lighting is True
         assert widget_with_config.show_timeline is True
         assert widget_with_config.show_animation is True
+
+    def test_custom_render_performance_options(self, widget_class):
+        """Test widget with custom render performance options."""
+        widget = widget_class(
+            request_render_mode=False,
+            maximum_render_time_change=0.0,
+        )
+        assert widget.request_render_mode is False
+        assert widget.maximum_render_time_change == 0.0
+
+    def test_request_render_method_updates_trigger(self, widget_instance):
+        """Test request_render method updates trigger payload."""
+        widget_instance.request_render()
+        assert "timestamp" in widget_instance.request_render_trigger
+        assert isinstance(widget_instance.request_render_trigger["timestamp"], float)
 
 
 class TestWidgetFiles:
@@ -209,3 +230,20 @@ class TestTraitlets:
         """Test that show_animation trait accepts booleans."""
         widget_instance.show_animation = True
         assert widget_instance.show_animation is True
+
+    def test_request_render_mode_is_bool(self, widget_instance):
+        """Test that request_render_mode trait accepts booleans."""
+        widget_instance.request_render_mode = False
+        assert widget_instance.request_render_mode is False
+
+    def test_maximum_render_time_change_is_nullable_float(self, widget_instance):
+        """Test that maximum_render_time_change accepts float and None."""
+        widget_instance.maximum_render_time_change = 0.25
+        assert widget_instance.maximum_render_time_change == 0.25
+        widget_instance.maximum_render_time_change = None
+        assert widget_instance.maximum_render_time_change is None
+
+    def test_request_render_trigger_is_dict(self, widget_instance):
+        """Test that request_render_trigger trait accepts dictionaries."""
+        widget_instance.request_render_trigger = {"timestamp": 1.0}
+        assert widget_instance.request_render_trigger == {"timestamp": 1.0}
