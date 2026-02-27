@@ -4,7 +4,6 @@ channels:
   - https://repo.prefix.dev/conda-forge
 dependencies:
   - xeus-python # A Jupyter kernel for Python
-  - pyarrow
   - sidecar
   - numpy
   - scipy
@@ -12,5 +11,4 @@ dependencies:
   - pyyaml
   - pip: # List pure Python packages from PyPi here
     - cesiumjs-anywidget
-    - huggingface_hub
     
