@@ -51,9 +51,12 @@ export function patchWorkerForCSP() {
   const origin = window.location.origin;
 
   function PatchedWorker(url, options) {
-    if (typeof url === 'string' && url.startsWith('http') && !url.startsWith(origin)) {
+    // Normalise to a string so we can inspect it whether a string or URL object
+    // was passed (CesiumJS >= ~1.100 often passes a URL object).
+    const urlStr = url instanceof URL ? url.href : (typeof url === 'string' ? url : null);
+    if (urlStr && urlStr.startsWith('http') && !urlStr.startsWith(origin)) {
       const blob = new Blob(
-        [`importScripts('${url}')`],
+        [`importScripts('${urlStr}')`],
         { type: 'application/javascript' }
       );
       url = URL.createObjectURL(blob);
