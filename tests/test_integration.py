@@ -48,25 +48,28 @@ class TestFileIntegrity:
     
     def test_javascript_syntax(self, widget_instance):
         """Test that JavaScript file has valid basic syntax."""
-        js_content = widget_instance._esm
+        js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
+        js_content = js_path.read_text()
         
-        # Check for basic JavaScript syntax elements
-        assert "function render" in js_content or "const render" in js_content
-        # Bundled code uses 'export {' format instead of 'export default'
-        assert ("export default" in js_content or "export {" in js_content)
+        # Check for basic JavaScript syntax elements.
+        # Minification renames the render function, but it is still exported
+        # as the 'render' key: `var x={render:...};export{x as default}`
+        assert "render" in js_content
+        # Minified bundle uses `export{...}` (no space) or `export default`
+        assert "export" in js_content
         assert "{" in js_content and "}" in js_content
     
     def test_javascript_imports_cesium(self):
         """Test that JavaScript loads Cesium."""
         js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
         js_content = js_path.read_text()
-        # Check that Cesium is loaded (dynamically via loadCesiumJS)
+        # Check that Cesium is bundled (imported via npm, not loaded dynamically)
         assert 'Cesium' in js_content
-        assert 'loadCesiumJS' in js_content or 'window.Cesium' in js_content
     
     def test_javascript_has_error_handling(self, widget_instance):
         """Test JavaScript has error handling."""
-        js_content = widget_instance._esm
+        js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
+        js_content = js_path.read_text()
         
         assert 'try' in js_content or 'catch' in js_content or 'error' in js_content.lower()
     
