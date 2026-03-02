@@ -9,9 +9,8 @@ dependencies:
   - scipy
   - pillow
   - pyyaml
-  - py_adsb_historical_data_client
   - jiter
   - pip: # List pure Python packages from PyPi here
     - cesiumjs-anywidget
-    - 
+    - py_adsb_historical_data_client
     
