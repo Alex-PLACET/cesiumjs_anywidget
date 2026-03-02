@@ -36,38 +36,60 @@ const CONSTANTS = {
  * which means workers created directly from a CDN URL (e.g.
  * https://cesium.com/.../Workers/createVerticesFromHeightmap.js) are blocked.
  *
- * This patch intercepts those URLs and produces a tiny blob script that calls
- * importScripts(<original-url>), converting the origin to blob: which is
- * explicitly allowed.  importScripts() inside a worker is governed by
- * script-src, not worker-src, so it still reaches the CDN.
+ * This patch intercepts those URLs and produces a tiny blob script that either:
+ *   - calls importScripts(<url>) for classic workers, or
+ *   - uses a static `import` statement for ES module workers ({ type: 'module' })
+ *
+ * CesiumJS >= 1.100 uses module workers, so the module-worker path is the
+ * critical one.  Both are governed by script-src (not worker-src), so they can
+ * still reach the CDN.
+ *
+ * We patch both window.Worker and globalThis.Worker for robustness across
+ * the various JS contexts used by JupyterLite.
  *
  * Must be called before loading CesiumJS.
  */
 export function patchWorkerForCSP() {
-  if (typeof window === 'undefined' || !window.Worker) return;
-  if (window.__workerCSPPatched) return; // avoid double-patching
+  // Resolve the actual global object (works in window, worker, and module contexts)
+  const _global = typeof globalThis !== 'undefined' ? globalThis
+    : typeof window !== 'undefined' ? window
+    : typeof self !== 'undefined' ? self
+    : null;
 
-  const OriginalWorker = window.Worker;
-  const origin = window.location.origin;
+  if (!_global || !_global.Worker) return;
+  if (_global.__workerCSPPatched) return; // avoid double-patching
+
+  const OriginalWorker = _global.Worker;
+  const origin = (typeof location !== 'undefined') ? location.origin : '';
 
   function PatchedWorker(url, options) {
     // Normalise to a string so we can inspect it whether a string or URL object
     // was passed (CesiumJS >= ~1.100 often passes a URL object).
     const urlStr = url instanceof URL ? url.href : (typeof url === 'string' ? url : null);
-    if (urlStr && urlStr.startsWith('http') && !urlStr.startsWith(origin)) {
-      const blob = new Blob(
-        [`importScripts('${urlStr}')`],
-        { type: 'application/javascript' }
-      );
+    if (urlStr && urlStr.startsWith('http') && origin && !urlStr.startsWith(origin)) {
+      const isModule = options && options.type === 'module';
+      // Module workers cannot use importScripts() — use a static ES import instead.
+      // Classic workers use importScripts().
+      const src = isModule
+        ? `import '${urlStr}';`
+        : `importScripts('${urlStr}');`;
+      const blob = new Blob([src], { type: 'application/javascript' });
       url = URL.createObjectURL(blob);
+      // Keep 'module' type so the browser treats the blob as an ES module worker.
+      // For classic workers no change to options is needed.
     }
     return new OriginalWorker(url, options);
   }
 
   PatchedWorker.prototype = OriginalWorker.prototype;
-  window.Worker = PatchedWorker;
-  window.__workerCSPPatched = true;
-  log(PREFIX, 'Worker patched for CSP blob: compatibility');
+
+  // Patch every global reference we know about.
+  try { _global.Worker = PatchedWorker; } catch (_) {}
+  try { if (typeof window !== 'undefined') window.Worker = PatchedWorker; } catch (_) {}
+  try { if (typeof self !== 'undefined') self.Worker = PatchedWorker; } catch (_) {}
+
+  _global.__workerCSPPatched = true;
+  log(PREFIX, 'Worker patched for CSP blob: compatibility (module workers supported)');
 }
 
 /**
