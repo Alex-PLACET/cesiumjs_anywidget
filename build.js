@@ -1,5 +1,4 @@
 import * as esbuild from 'esbuild';
-import { readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -14,6 +13,9 @@ const buildOptions = {
   outfile: 'src/cesiumjs_anywidget/index.js',
   platform: 'browser',
   target: 'es2020',
+  minify: true,
+  treeShaking: true,
+  legalComments: 'none',
   logLevel: 'info',
   banner: {
     js: '// Generated bundle - DO NOT EDIT DIRECTLY. Edit files in src/cesiumjs_anywidget/js/ instead.\n'

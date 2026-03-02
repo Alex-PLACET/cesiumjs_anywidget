@@ -11,12 +11,7 @@ const PREFIX = 'ViewerInit';
 
 // ============= CONSTANTS =============
 
-export const CESIUM_CDN_VERSION = '1.138';
-
 const CONSTANTS = {
-  // CesiumJS CDN
-  CESIUM_CDN_VERSION,
-
   // Render Policy
   RUNNING_TARGET_FPS: 60,
   
@@ -90,47 +85,6 @@ export function patchWorkerForCSP() {
 
   _global.__workerCSPPatched = true;
   log(PREFIX, 'Worker patched for CSP blob: compatibility (module workers supported)');
-}
-
-/**
- * Load CesiumJS library dynamically if not already loaded
- * @returns {Promise<Object>} Cesium global object
- */
-export async function loadCesiumJS() {
-  log(PREFIX, 'Loading CesiumJS...');
-  if (window.Cesium) {
-    log(PREFIX, 'CesiumJS already loaded, reusing existing instance');
-    return window.Cesium;
-  }
-
-  // Inject Cesium CSS link if not already present
-  const cesiumCssId = 'cesium-widgets-css';
-  if (!document.getElementById(cesiumCssId)) {
-    const link = document.createElement('link');
-    link.id = cesiumCssId;
-    link.rel = 'stylesheet';
-    link.href = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/Widgets/widgets.css`;
-    document.head.appendChild(link);
-  }
-
-  const script = document.createElement('script');
-  script.src = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/Cesium.js`;
-  log(PREFIX, 'Loading CesiumJS from CDN...');
-
-  await new Promise((resolve, reject) => {
-    script.onload = () => {
-      log(PREFIX, 'CesiumJS script loaded successfully');
-      resolve();
-    };
-    script.onerror = (err) => {
-      error(PREFIX, 'Failed to load CesiumJS script:', err);
-      reject(err);
-    };
-    document.head.appendChild(script);
-  });
-
-  log(PREFIX, 'CesiumJS initialized');
-  return window.Cesium;
 }
 
 /**

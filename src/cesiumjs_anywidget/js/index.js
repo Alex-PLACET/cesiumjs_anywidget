@@ -5,14 +5,13 @@
  * and measurement tools by composing specialized modules.
  */
 
-import { loadCesiumJS, createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles, patchWorkerForCSP, CESIUM_CDN_VERSION } from './viewer-init.js';
+import * as Cesium from 'cesium';
+import 'cesium/Build/Cesium/Widgets/widgets.css';
+import { createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles, patchWorkerForCSP } from './viewer-init.js';
 import { initializeCameraSync } from './camera-sync.js';
 import { initializeMeasurementTools } from './measurement-tools.js';
 import { initializePointPicking } from './point-picking.js';
 import { setDebugMode, log, warn, error } from './logger.js';
-
-// Configure Cesium base URL for assets before loading
-window.CESIUM_BASE_URL = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_CDN_VERSION}/Build/Cesium/`;
 
 /**
  * Render function called by anywidget
@@ -35,10 +34,7 @@ async function render({ model, el }) {
   // CSP (required in JupyterLite and other environments with strict CSP).
   patchWorkerForCSP();
   
-  // Dynamically load CesiumJS from CDN
-  log('Main', 'Loading CesiumJS...');
-  const Cesium = await loadCesiumJS();
-  log('Main', 'CesiumJS loaded successfully');
+  log('Main', 'CesiumJS loaded via npm bundle');
 
   // Create container div for Cesium viewer
   const container = document.createElement("div");

@@ -188,6 +188,7 @@ package-lock.json
 
 # Generated/bundled files - source is in js/ subdirectory
 src/cesiumjs_anywidget/index.js
+src/cesiumjs_anywidget/index.css
 examples/adsb_cache/
 
 .vscode/settings.json
