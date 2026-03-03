@@ -49,7 +49,7 @@ class TestFileIntegrity:
     def test_javascript_syntax(self, widget_instance):
         """Test that JavaScript file has valid basic syntax."""
         js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
-        js_content = js_path.read_text()
+        js_content = js_path.read_text(encoding="utf-8")
         
         # Check for basic JavaScript syntax elements.
         # Minification renames the render function, but it is still exported
@@ -62,14 +62,14 @@ class TestFileIntegrity:
     def test_javascript_imports_cesium(self):
         """Test that JavaScript loads Cesium."""
         js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
-        js_content = js_path.read_text()
+        js_content = js_path.read_text(encoding="utf-8")
         # Check that Cesium is bundled (imported via npm, not loaded dynamically)
         assert 'Cesium' in js_content
     
     def test_javascript_has_error_handling(self, widget_instance):
         """Test JavaScript has error handling."""
         js_path = pathlib.Path(__file__).parent.parent / "src" / "cesiumjs_anywidget" / "index.js"
-        js_content = js_path.read_text()
+        js_content = js_path.read_text(encoding="utf-8")
         
         assert 'try' in js_content or 'catch' in js_content or 'error' in js_content.lower()
     
