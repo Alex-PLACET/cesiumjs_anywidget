@@ -19,6 +19,6 @@
     "jest-environment-jsdom": "^29.7.0"
   },
   "dependencies": {
-    "cesium": "^1.138.0"
+    "cesium": "^1.139.0"
   }
 }

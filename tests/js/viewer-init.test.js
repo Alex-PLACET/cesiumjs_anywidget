@@ -97,7 +97,7 @@ describe('Viewer Initialization Module', () => {
         }
         
         const script = document.createElement('script');
-        script.src = `https://cesium.com/downloads/cesiumjs/releases/1.138/Build/Cesium/Cesium.js`;
+        script.src = `https://cesium.com/downloads/cesiumjs/releases/1.139/Build/Cesium/Cesium.js`;
         
         await new Promise((resolve) => {
           script.onload = () => {
