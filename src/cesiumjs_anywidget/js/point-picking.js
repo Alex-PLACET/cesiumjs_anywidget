@@ -5,6 +5,7 @@
  * Points can be picked by clicking on the terrain, 3D tiles, or other geometry.
  */
 
+import * as Cesium from 'cesium';
 import { log, warn, error } from './logger.js';
 
 const PREFIX = 'PointPicking';
@@ -17,8 +18,6 @@ const PREFIX = 'PointPicking';
  * @returns {Object} - Cleanup object with destroy method
  */
 export function initializePointPicking(viewer, model, container) {
-  const Cesium = window.Cesium;
-  
   // State
   let handler = null;
   let pickedPointEntities = [];

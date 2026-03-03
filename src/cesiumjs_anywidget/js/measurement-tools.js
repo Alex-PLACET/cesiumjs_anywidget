@@ -5,6 +5,7 @@
  * height, and area measurements.
  */
 
+import * as Cesium from 'cesium';
 import { log, warn, error } from './logger.js';
 
 const PREFIX = 'Measurements';
@@ -45,7 +46,6 @@ const CONSTANTS = {
  * Using a getter function to access Cesium after it's loaded
  */
 function getColors() {
-  const Cesium = window.Cesium;
   return {
     distance: { main: Cesium.Color.RED, button: '#e74c3c' },
     'multi-distance': { main: Cesium.Color.BLUE, button: '#3498db' },
@@ -65,7 +65,6 @@ const TYPE_LABELS = {
  * Calculate geodesic area from Cartesian3 positions using Cesium's PolygonGeometry
  */
 function calculateGeodesicArea(positions) {
-  const Cesium = window.Cesium;
   const polygonHierarchy = new Cesium.PolygonHierarchy(positions);
   const geometry = Cesium.PolygonGeometry.createGeometry(
     new Cesium.PolygonGeometry({
@@ -103,7 +102,6 @@ function calculateGeodesicArea(positions) {
  * Calculate centroid of positions in geographic coordinates
  */
 function calculateCentroid(positions) {
-  const Cesium = window.Cesium;
   let centroidLon = 0, centroidLat = 0;
   positions.forEach(pos => {
     const carto = Cesium.Cartographic.fromCartesian(pos);
@@ -314,7 +312,6 @@ function makeResizable(panel, minWidth = CONSTANTS.PANEL_MIN_WIDTH, minHeight = 
  */
 export function initializeMeasurementTools(viewer, model, container) {
   log(PREFIX, 'Initializing measurement tools');
-  const Cesium = window.Cesium;
 
   let measurementHandler = null;
   let editHandler = null;

@@ -5,6 +5,7 @@
  * and the Python widget model.
  */
 
+import * as Cesium from 'cesium';
 import { log, warn, error } from './logger.js';
 
 const PREFIX = 'CameraSync';
@@ -16,18 +17,12 @@ const PREFIX = 'CameraSync';
  * @returns {Object} Camera sync API
  */
 export function initializeCameraSync(viewer, model) {
-  const Cesium = window.Cesium;
   let cameraUpdateTimeout = null;
   let modelUpdateTimeout = null;
   let isDestroyed = false;
   let syncEnabled = model.get("camera_sync_enabled") || false;
 
   log(PREFIX, 'Initializing camera synchronization, sync enabled:', syncEnabled);
-
-  if (!Cesium) {
-    error(PREFIX, 'Cesium global not available');
-    throw new Error('Cesium is not loaded');
-  }
 
   // Store event handlers for cleanup
   const handleSyncEnabledChange = () => {
