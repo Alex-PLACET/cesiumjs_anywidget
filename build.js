@@ -113,7 +113,7 @@ function dataURLToBlob(dataUrl) {
 var OrigWorker = window.Worker;
 window.Worker = function(url, opts) {
   var key = resolve(url);
-  if (key && textAssets[key]) {
+  if (key !== null && textAssets[key] !== undefined) {
     url  = URL.createObjectURL(new Blob([textAssets[key]], { type: "application/javascript" }));
     opts = Object.assign({}, opts);
     delete opts.type;
@@ -142,24 +142,50 @@ XMLHttpRequest.prototype.open = function(method, url) {
   }
   return origXHROpen.apply(this, [method, url].concat(Array.prototype.slice.call(arguments, 2)));
 };
-function patchProp(Cls, prop, mapper) {
+function resolveAsset(v) {
+  var key = resolve(v);
+  if (key === null) return null;
+  if (textAssets[key] !== undefined) {
+    var mime = mimeOf(key);
+    var content = (mime === "text/css") ? inlineCSSUrls(textAssets[key], key) : textAssets[key];
+    return URL.createObjectURL(new Blob([content], { type: mime }));
+  }
+  if (binaryAssets[key] !== undefined) return binaryAssets[key];
+  return null;
+}
+// Patch property setters (direct assignment: el.src = url / el.href = url)
+function patchProp(Cls, prop) {
   var desc = Object.getOwnPropertyDescriptor(Cls.prototype, prop);
   if (!desc || !desc.set) return;
   var origSet = desc.set;
   Object.defineProperty(Cls.prototype, prop, Object.assign({}, desc, { set: function(v) {
-    var key = resolve(v);
-    var mapped = key && mapper(key);
-    origSet.call(this, mapped || v);
+    origSet.call(this, resolveAsset(v) || v);
   }}));
 }
-patchProp(HTMLLinkElement, "href", function(key) {
-  return textAssets[key] !== undefined
-    ? URL.createObjectURL(new Blob([textAssets[key]], { type: "text/css" }))
-    : null;
-});
-patchProp(HTMLImageElement, "src", function(key) {
-  return binaryAssets[key] || null;
-});
+patchProp(HTMLLinkElement, "href");
+patchProp(HTMLImageElement, "src");
+// Patch setAttribute (Knockout/framework bindings use this instead of direct assignment)
+var origSetAttr = Element.prototype.setAttribute;
+Element.prototype.setAttribute = function(name, value) {
+  var lower = name.toLowerCase();
+  if ((lower === "src" && this instanceof HTMLImageElement) ||
+      (lower === "href" && this instanceof HTMLLinkElement)) {
+    var resolved = resolveAsset(value);
+    if (resolved) { origSetAttr.call(this, name, resolved); return; }
+  }
+  origSetAttr.call(this, name, value);
+};
+// Inline url() references in CSS before creating CSS blobs, so relative image
+// paths inside Cesium's widget CSS resolve correctly (avoids blob: base URL issue)
+function inlineCSSUrls(css, cssKey) {
+  var base = cssKey.substring(0, cssKey.lastIndexOf("/") + 1);
+  return css.replace(/url\\((['"]?)([^'")]+)\\1\\)/g, function(m, q, r) {
+    if (r.startsWith("data:") || r.startsWith("http") || r.startsWith("//")) return m;
+    var k = base + r;
+    if (binaryAssets[k]) return "url(" + binaryAssets[k] + ")";
+    return m;
+  });
+}
 })();
 `;
 
