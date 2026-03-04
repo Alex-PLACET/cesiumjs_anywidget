@@ -7,7 +7,7 @@
 
 import * as Cesium from 'cesium';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
-import { createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles, patchWorkerForCSP } from './viewer-init.js';
+import { createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles } from './viewer-init.js';
 import { initializeCameraSync } from './camera-sync.js';
 import { initializeMeasurementTools } from './measurement-tools.js';
 import { initializePointPicking } from './point-picking.js';
@@ -30,10 +30,6 @@ async function render({ model, el }) {
 
   log('Main', 'Starting render');
 
-  // Patch Worker constructor so Cesium's CDN workers satisfy `worker-src blob:`
-  // CSP (required in JupyterLite and other environments with strict CSP).
-  patchWorkerForCSP();
-  
   log('Main', 'CesiumJS loaded via npm bundle');
 
   // Create container div for Cesium viewer
