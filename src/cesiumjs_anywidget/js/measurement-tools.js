@@ -5,8 +5,8 @@
  * height, and area measurements.
  */
 
-import * as Cesium from 'cesium';
 import { log, warn, error } from './logger.js';
+const Cesium = window.Cesium;
 
 const PREFIX = 'Measurements';
 

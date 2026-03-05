@@ -5,8 +5,6 @@
  * and measurement tools by composing specialized modules.
  */
 
-import * as Cesium from 'cesium';
-import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { createLoadingIndicator, createViewer, setupViewerListeners, setupGeoJSONLoader, setupCZMLLoader, setupPhotorealisticTiles } from './viewer-init.js';
 import { initializeCameraSync } from './camera-sync.js';
 import { initializeMeasurementTools } from './measurement-tools.js';
@@ -30,7 +28,8 @@ async function render({ model, el }) {
 
   log('Main', 'Starting render');
 
-  log('Main', 'CesiumJS loaded via npm bundle');
+  const Cesium = window.Cesium;
+  log('Main', 'CesiumJS loaded via pre-built bundle');
 
   // Create container div for Cesium viewer
   const container = document.createElement("div");
