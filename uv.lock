@@ -197,8 +197,11 @@ notebook-examples = [
     { name = "jupyterlab" },
     { name = "opencv-python" },
     { name = "piexif" },
+    { name = "pre-commit" },
     { name = "py-adsb-historical-data-client" },
     { name = "pyarrow" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
     { name = "sidecar" },
 ]
 
@@ -223,8 +226,11 @@ notebook-examples = [
     { name = "jupyterlab", specifier = ">=4.3.8" },
     { name = "opencv-python", specifier = ">=4.11.0.86" },
     { name = "piexif", specifier = ">=1.1.3" },
+    { name = "pre-commit" },
     { name = "py-adsb-historical-data-client", specifier = ">=1.1.0" },
     { name = "pyarrow", specifier = ">=23.0.0" },
+    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
     { name = "sidecar", specifier = ">=0.8.0" },
 ]
 

@@ -1,7 +1,7 @@
 import * as esbuild from 'esbuild';
 import { dirname, join, relative } from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -415,6 +415,17 @@ async function build() {
     } else {
       console.log('🔨 Building...');
       await esbuild.build(buildOptions);
+
+      // Write bundled Cesium widget CSS to index.css so that the Python widget
+      // can load it via _css at import time (without requiring a browser environment).
+      const cesiumCss = Object.entries(textAssets)
+        .filter(([k]) => k.endsWith('.css'))
+        .map(([, v]) => v)
+        .join('\n');
+      const indexCssPath = join(__dirname, 'src/cesiumjs_anywidget/index.css');
+      writeFileSync(indexCssPath, cesiumCss, 'utf8');
+      console.log(`   wrote index.css (${(cesiumCss.length / 1024).toFixed(0)} KB)`);
+
       console.log('✅ Build complete!');
     }
   } catch (error) {

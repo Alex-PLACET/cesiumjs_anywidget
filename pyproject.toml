@@ -38,7 +38,9 @@ notebook_examples = [
     "py-adsb-historical-data-client>=1.1.0",
     "pyarrow>=23.0.0",
     "sidecar>=0.8.0",
+    {include-group = "dev"}
 ]
+
 
 [project.urls]
 Homepage = "https://github.com/Alex-PLACET/cesiumjs_anywidget"
